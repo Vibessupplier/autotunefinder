@@ -10,7 +10,7 @@ from ui import load_design, show_header
 
 
 st.set_page_config(
-    page_title="Nightcore Generator | Vibes Supplier",
+    page_title="Speed Changer | Vibes Supplier",
     page_icon="⚡",
     layout="centered",
 )
@@ -27,8 +27,8 @@ def detect_uploaded_bpm(audio_data: bytes, suffix: str) -> float:
 load_design()
 show_header()
 
-st.title("Nightcore Generator")
-st.write("Speed up your track and raise its pitch in one step.")
+st.title("Speed Changer")
+st.write("Choose an exact target BPM and change your track's speed.")
 
 audio_file = st.file_uploader(
     "Upload your audio",
@@ -97,30 +97,32 @@ if audio_file is not None:
         st.session_state.pop("nightcore_result", None)
         st.session_state["nightcore_settings"] = settings_signature
 
-    if st.button("CREATE NIGHTCORE"):
-        with st.spinner("Creating your Nightcore version..."):
+    if st.button("CHANGE SPEED"):
+        with st.spinner("Changing your track's speed..."):
             try:
                 with tempfile.TemporaryDirectory() as temp_directory:
                     input_path = Path(temp_directory) / f"input{suffix}"
-                    output_path = Path(temp_directory) / "nightcore.mp3"
+                    output_path = Path(temp_directory) / "speed-changed.mp3"
 
                     input_path.write_bytes(audio_data)
                     create_nightcore(input_path, output_path, speed=speed)
 
                     st.session_state["nightcore_result"] = {
                         "audio": output_path.read_bytes(),
-                        "filename": f"{Path(audio_file.name).stem}_nightcore.mp3",
+                        "filename": (
+                            f"{Path(audio_file.name).stem}_speed-changed.mp3"
+                        ),
                         "source_bpm": source_bpm,
                         "target_bpm": target_bpm,
                     }
 
             except (AudioProcessingError, OSError) as error:
-                st.error("The Nightcore version could not be created.")
+                st.error("The speed-changed version could not be created.")
                 st.code(str(error))
 
     result = st.session_state.get("nightcore_result")
     if result is not None:
-        st.success("Your Nightcore version is ready.")
+        st.success("Your speed-changed version is ready.")
         st.write(
             f"**{result['source_bpm']:.1f} BPM → "
             f"{result['target_bpm']:.1f} BPM**"
