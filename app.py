@@ -33,10 +33,11 @@ load_design()
 show_header()
 
 st.subheader("AUDIO TOOLS")
-st.page_link(
-    "pages/2_Speed_Changer.py",
-    label="⚡ OPEN SPEED CHANGER",
-    use_container_width=True,
+st.markdown(
+    '<a class="tool-link" href="/Speed_Changer" target="_self">'
+    '⚡ OPEN SPEED CHANGER'
+    '</a>',
+    unsafe_allow_html=True,
 )
 
 st.markdown("---")
