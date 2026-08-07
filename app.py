@@ -3,7 +3,13 @@ import librosa
 import tempfile
 import os
 
-from audio_analysis import detect_key, detect_bpm
+from audio_analysis import (
+    detect_key,
+    detect_bpm,
+    get_camelot,
+    get_bpm_options
+)
+
 from ui import load_design, show_header
 
 
@@ -80,6 +86,17 @@ if audio_file is not None:
                     sr
                 )
 
+                # Camelot
+                camelot = get_camelot(
+                    note,
+                    mode
+                )
+
+                # Alternative BPM interpretations
+                bpm_options = get_bpm_options(
+                    bpm
+                )
+
                 # Approximate confidence
                 confidence = max(
                     0,
@@ -96,20 +113,39 @@ if audio_file is not None:
 
                 st.subheader("TRACK ANALYSIS")
 
-                col1, col2 = st.columns(2)
+                col1, col2, col3 = st.columns(3)
 
                 with col1:
-
                     st.metric(
                         "KEY",
                         f"{note} {mode}"
                     )
 
                 with col2:
+                    st.metric(
+                        "CAMELOT",
+                        camelot
+                    )
 
+                with col3:
                     st.metric(
                         "BPM",
                         f"{bpm:.1f}"
+                    )
+
+
+                # Alternative BPM
+                alternatives = [
+                    f"{value:.1f}"
+                    for value in bpm_options
+                    if abs(value - bpm) > 0.1
+                ]
+
+                if alternatives:
+                    st.caption(
+                        "Possible tempo interpretation: "
+                        + " / ".join(alternatives)
+                        + " BPM"
                     )
 
 
@@ -126,8 +162,7 @@ if audio_file is not None:
                 st.caption(
                     "Results are estimates. "
                     "Complex arrangements, tempo changes "
-                    "or highly chromatic music may reduce "
-                    "accuracy."
+                    "or highly chromatic music may reduce accuracy."
                 )
 
 
@@ -145,5 +180,4 @@ if audio_file is not None:
             finally:
 
                 if os.path.exists(temp_path):
-
                     os.remove(temp_path)
