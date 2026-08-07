@@ -104,10 +104,20 @@ def get_bpm_options(bpm):
     half = bpm / 2
     double = bpm * 2
 
-    if 40 <= half <= 250:
+MIN_BPM = 40
+MAX_BPM = 250
+
+def get_bpm_options(bpm):
+
+    options = [bpm]
+
+    half = bpm / 2
+    double = bpm * 2
+
+    if MIN_BPM <= half <= MAX_BPM:
         options.append(half)
 
-    if 40 <= double <= 250:
+    if MIN_BPM <= double <= MAX_BPM:
         options.append(double)
 
     return sorted(set(options))
