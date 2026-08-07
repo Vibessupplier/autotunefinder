@@ -20,7 +20,8 @@ from ui import load_design, show_header
 st.set_page_config(
     page_title="Vibes Supplier",
     page_icon="🎵",
-    layout="centered"
+    layout="centered",
+    initial_sidebar_state="expanded",
 )
 
 
@@ -30,6 +31,16 @@ st.set_page_config(
 
 load_design()
 show_header()
+
+st.subheader("AUDIO TOOLS")
+st.page_link(
+    "pages/2_Speed_Changer.py",
+    label="⚡ OPEN SPEED CHANGER",
+    use_container_width=True,
+)
+
+st.markdown("---")
+st.subheader("KEY & BPM FINDER")
 
 
 # -------------------------

@@ -13,6 +13,7 @@ st.set_page_config(
     page_title="Speed Changer | Vibes Supplier",
     page_icon="⚡",
     layout="centered",
+    initial_sidebar_state="expanded",
 )
 
 
