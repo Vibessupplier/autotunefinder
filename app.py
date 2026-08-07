@@ -18,7 +18,7 @@ from ui import load_design, show_header
 # -------------------------
 
 st.set_page_config(
-    page_title="AutoTune Finder",
+    page_title="Vibes Supplier",
     page_icon="🎵",
     layout="centered"
 )
@@ -67,43 +67,62 @@ if audio_file is not None:
 
             try:
 
-                # Load audio
+                # -------------------------
+                # LOAD AUDIO
+                # -------------------------
+
                 y, sr = librosa.load(
                     temp_path,
                     mono=True,
                     duration=120
                 )
 
-                # Analyze key
+
+                # -------------------------
+                # KEY DETECTION
+                # -------------------------
+
                 results = detect_key(
-    y,
-    sr
-)
+                    y,
+                    sr
+                )
 
-best = results[0]
+                best = results[0]
 
-score = best["score"]
-note = best["note"]
-mode = best["mode"]
+                score = best["score"]
+                note = best["note"]
+                mode = best["mode"]
 
-                # Analyze BPM
+
+                # -------------------------
+                # BPM DETECTION
+                # -------------------------
+
                 bpm = detect_bpm(
                     y,
                     sr
                 )
 
-                # Camelot
+
+                # -------------------------
+                # CAMELOT
+                # -------------------------
+
                 camelot = get_camelot(
                     note,
                     mode
                 )
 
-                # Alternative BPM interpretations
+
+                # -------------------------
+                # BPM ALTERNATIVES
+                # -------------------------
+
                 bpm_options = get_bpm_options(
                     bpm
                 )
 
-               
+
                 # -------------------------
                 # RESULTS
                 # -------------------------
@@ -131,7 +150,10 @@ mode = best["mode"]
                     )
 
 
-                # Alternative BPM
+                # -------------------------
+                # BPM INTERPRETATIONS
+                # -------------------------
+
                 alternatives = [
                     f"{value:.1f}"
                     for value in bpm_options
@@ -146,33 +168,36 @@ mode = best["mode"]
                     )
 
 
-                st.markdown(
-                    f"### 🎛 Auto-Tune Setting: "
-                    f"**{note} {mode}**"
+                # -------------------------
+                # ALTERNATIVE KEY DETECTION
+                # -------------------------
+
+                st.markdown("---")
+
+                st.subheader(
+                    "Alternative Detection"
                 )
 
-                st.write(
-                    f"Key confidence: "
-                    f"**{confidence:.0f}%**"
-                )
-st.markdown("---")
+                for candidate in results[1:4]:
 
-st.subheader("Alternative Detection")
+                    confidence = max(
+                        0,
+                        min(
+                            100,
+                            (
+                                (candidate["score"] + 1)
+                                / 2
+                            ) * 100
+                        )
+                    )
 
-for candidate in results[1:4]:
+                    st.write(
+                        f"**{candidate['note']} "
+                        f"{candidate['mode']}**"
+                        f" — {confidence:.0f}%"
+                    )
 
-    confidence = max(
-        0,
-        min(
-            100,
-            ((candidate["score"] + 1)/2)*100
-        )
-    )
 
-    st.write(
-        f"**{candidate['note']} {candidate['mode']}**"
-        f" — {confidence:.0f}%"
-    )
                 st.caption(
                     "Results are estimates. "
                     "Complex arrangements, tempo changes "
