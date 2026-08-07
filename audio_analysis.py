@@ -19,35 +19,56 @@ notes = [
 
 
 def detect_key(y, sr):
+
     chroma = librosa.feature.chroma_cqt(
         y=y,
         sr=sr
     )
 
-    chroma_mean = np.mean(chroma, axis=1)
+    chroma_mean = np.mean(
+        chroma,
+        axis=1
+    )
 
     scores = []
 
     for i in range(12):
+
         major_score = np.corrcoef(
             chroma_mean,
-            np.roll(major_profile, i)
-        )[0, 1]
+            np.roll(
+                major_profile,
+                i
+            )
+        )[0,1]
 
         minor_score = np.corrcoef(
             chroma_mean,
-            np.roll(minor_profile, i)
-        )[0, 1]
+            np.roll(
+                minor_profile,
+                i
+            )
+        )[0,1]
 
-        scores.append(
-            (major_score, notes[i], "Major")
-        )
+        scores.append({
+            "score": major_score,
+            "note": notes[i],
+            "mode": "Major"
+        })
 
-        scores.append(
-            (minor_score, notes[i], "Minor")
-        )
+        scores.append({
+            "score": minor_score,
+            "note": notes[i],
+            "mode": "Minor"
+        })
 
-    return max(scores, key=lambda x: x[0])
+    scores = sorted(
+        scores,
+        key=lambda x: x["score"],
+        reverse=True
+    )
+
+    return scores
 
 
 def detect_bpm(y, sr):
