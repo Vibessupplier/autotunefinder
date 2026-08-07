@@ -104,10 +104,10 @@ def get_bpm_options(bpm):
     half = bpm / 2
     double = bpm * 2
 
-    if 55 <= half <= 200:
+    if 40 <= half <= 250:
         options.append(half)
 
-    if 55 <= double <= 200:
+    if 40 <= double <= 250:
         options.append(double)
 
     return sorted(set(options))
