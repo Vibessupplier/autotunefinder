@@ -9,14 +9,6 @@ from audio_engine import AudioProcessingError
 from ui import load_design, show_header
 
 
-st.set_page_config(
-    page_title="Speed Changer | Vibes Supplier",
-    page_icon="⚡",
-    layout="centered",
-    initial_sidebar_state="expanded",
-)
-
-
 @st.cache_data(show_spinner=False)
 def detect_uploaded_bpm(audio_data: bytes, suffix: str) -> float:
     """Cache BPM detection so UI reruns do not analyze the same file again."""

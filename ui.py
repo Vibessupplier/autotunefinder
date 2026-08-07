@@ -75,26 +75,6 @@ def load_design():
             rgba(0,255,255,0.6);
     }
 
-    .tool-link {
-        display: block;
-        width: 100%;
-        padding: 1rem;
-        border: 1px solid #00ffff;
-        border-radius: 12px;
-        background-color: #090909;
-        color: white !important;
-        font-size: 17px;
-        font-weight: 700;
-        text-align: center;
-        text-decoration: none !important;
-        box-shadow: 0 0 12px rgba(0,255,255,0.3);
-    }
-
-    .tool-link:hover {
-        color: #00ffff !important;
-        box-shadow: 0 0 20px rgba(0,255,255,0.6);
-    }
-
     </style>
     """, unsafe_allow_html=True)
 
