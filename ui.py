@@ -83,15 +83,14 @@ def show_header():
 
     st.markdown(
         '<div class="neon-title">'
-        'AUTOTUNE FINDER'
+        'VIBES SUPPLIER'
         '</div>',
         unsafe_allow_html=True
     )
 
     st.markdown(
         '<div class="subtitle">'
-        'Analyze your track. Find the key, '
-        'tempo and Auto-Tune settings.'
+        'Professional audio tools for producers, DJs and artists.'
         '</div>',
         unsafe_allow_html=True
     )
