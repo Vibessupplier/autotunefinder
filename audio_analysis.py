@@ -60,3 +60,54 @@ def detect_bpm(y, sr):
         tempo = tempo.item()
 
     return float(tempo)
+
+def get_camelot(note, mode):
+
+    camelot_map = {
+        ("C", "Major"): "8B",
+        ("C#/Db", "Major"): "3B",
+        ("D", "Major"): "10B",
+        ("D#/Eb", "Major"): "5B",
+        ("E", "Major"): "12B",
+        ("F", "Major"): "7B",
+        ("F#/Gb", "Major"): "2B",
+        ("G", "Major"): "9B",
+        ("G#/Ab", "Major"): "4B",
+        ("A", "Major"): "11B",
+        ("A#/Bb", "Major"): "6B",
+        ("B", "Major"): "1B",
+
+        ("C", "Minor"): "5A",
+        ("C#/Db", "Minor"): "12A",
+        ("D", "Minor"): "7A",
+        ("D#/Eb", "Minor"): "2A",
+        ("E", "Minor"): "9A",
+        ("F", "Minor"): "4A",
+        ("F#/Gb", "Minor"): "11A",
+        ("G", "Minor"): "6A",
+        ("G#/Ab", "Minor"): "1A",
+        ("A", "Minor"): "8A",
+        ("A#/Bb", "Minor"): "3A",
+        ("B", "Minor"): "10A"
+    }
+
+    return camelot_map.get(
+        (note, mode),
+        "Unknown"
+    )
+
+
+def get_bpm_options(bpm):
+
+    options = [bpm]
+
+    half = bpm / 2
+    double = bpm * 2
+
+    if 55 <= half <= 200:
+        options.append(half)
+
+    if 55 <= double <= 200:
+        options.append(double)
+
+    return sorted(set(options))
