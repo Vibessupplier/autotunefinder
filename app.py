@@ -75,10 +75,16 @@ if audio_file is not None:
                 )
 
                 # Analyze key
-                score, note, mode = detect_key(
-                    y,
-                    sr
-                )
+                results = detect_key(
+    y,
+    sr
+)
+
+best = results[0]
+
+score = best["score"]
+note = best["note"]
+mode = best["mode"]
 
                 # Analyze BPM
                 bpm = detect_bpm(
@@ -97,16 +103,7 @@ if audio_file is not None:
                     bpm
                 )
 
-                # Approximate confidence
-                confidence = max(
-                    0,
-                    min(
-                        100,
-                        ((score + 1) / 2) * 100
-                    )
-                )
-
-
+               
                 # -------------------------
                 # RESULTS
                 # -------------------------
@@ -158,7 +155,24 @@ if audio_file is not None:
                     f"Key confidence: "
                     f"**{confidence:.0f}%**"
                 )
+st.markdown("---")
 
+st.subheader("Alternative Detection")
+
+for candidate in results[1:4]:
+
+    confidence = max(
+        0,
+        min(
+            100,
+            ((candidate["score"] + 1)/2)*100
+        )
+    )
+
+    st.write(
+        f"**{candidate['note']} {candidate['mode']}**"
+        f" — {confidence:.0f}%"
+    )
                 st.caption(
                     "Results are estimates. "
                     "Complex arrangements, tempo changes "
