@@ -1,5 +1,6 @@
 import librosa
 import numpy as np
+from pathlib import Path
 
 
 major_profile = np.array([
@@ -81,6 +82,17 @@ def detect_bpm(y, sr):
         tempo = tempo.item()
 
     return float(tempo)
+
+
+def detect_bpm_from_file(audio_path: Path, duration: int = 120) -> float:
+    """Load an audio file and estimate its BPM."""
+    y, sr = librosa.load(
+        str(audio_path),
+        mono=True,
+        duration=duration,
+    )
+
+    return detect_bpm(y, sr)
 
 def get_camelot(note, mode):
 

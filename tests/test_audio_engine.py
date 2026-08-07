@@ -5,8 +5,15 @@ import tempfile
 import unittest
 import wave
 
-from audio_effects import create_nightcore
+from audio_effects import calculate_nightcore_speed, create_nightcore
 from audio_engine import transform_audio
+
+
+class AudioEffectsTest(unittest.TestCase):
+    def test_calculates_nightcore_speed_from_bpm(self):
+        speed = calculate_nightcore_speed(123.0, 180.0)
+
+        self.assertAlmostEqual(speed, 180.0 / 123.0)
 
 
 @unittest.skipUnless(shutil.which("ffmpeg"), "FFmpeg is required")
