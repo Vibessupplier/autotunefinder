@@ -12,6 +12,7 @@ from audio_effects import (
     MIN_SPEED_FACTOR,
     calculate_speed_factor,
     change_speed,
+    create_speed_preview,
 )
 from audio_engine import AudioProcessingError
 from ui import load_design, show_header
@@ -55,6 +56,7 @@ if audio_file is not None:
 
         st.session_state["speed_source_bpm"] = round(detected_bpm, 1)
         st.session_state.pop("speed_target_bpm", None)
+        st.session_state.pop("speed_preview", None)
         st.session_state.pop("speed_result", None)
         st.session_state["speed_upload_signature"] = upload_signature
 
@@ -127,8 +129,33 @@ if audio_file is not None:
         pitch_semitones,
     )
     if st.session_state.get("speed_settings") != settings_signature:
+        st.session_state.pop("speed_preview", None)
         st.session_state.pop("speed_result", None)
         st.session_state["speed_settings"] = settings_signature
+
+    if st.button("CREATE 20-SECOND PREVIEW"):
+        with st.spinner("Creating your processed preview..."):
+            try:
+                with tempfile.TemporaryDirectory() as temp_directory:
+                    input_path = Path(temp_directory) / f"input{suffix}"
+                    output_path = Path(temp_directory) / "speed-preview.mp3"
+
+                    input_path.write_bytes(audio_data)
+                    create_speed_preview(
+                        input_path,
+                        output_path,
+                        speed=speed,
+                        pitch_semitones=processing_pitch,
+                    )
+                    st.session_state["speed_preview"] = output_path.read_bytes()
+            except (AudioProcessingError, OSError) as error:
+                st.error("The processed preview could not be created.")
+                st.code(str(error))
+
+    preview = st.session_state.get("speed_preview")
+    if preview is not None:
+        st.write("**Processed preview (up to 20 seconds)**")
+        st.audio(preview, format="audio/mpeg")
 
     if st.button("CHANGE SPEED"):
         with st.spinner("Changing your track's speed..."):

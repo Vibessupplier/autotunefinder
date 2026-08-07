@@ -3,12 +3,18 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 import wave
 
 import numpy as np
 
-from audio_effects import calculate_speed_factor, change_speed
-from audio_engine import transform_audio
+from audio_effects import (
+    SPEED_PREVIEW_SECONDS,
+    calculate_speed_factor,
+    change_speed,
+    create_speed_preview,
+)
+from audio_engine import AudioProcessingError, transform_audio
 
 
 class AudioEffectsTest(unittest.TestCase):
@@ -20,6 +26,43 @@ class AudioEffectsTest(unittest.TestCase):
     def test_accepts_slowest_and_fastest_speed_limits(self):
         self.assertEqual(calculate_speed_factor(120.0, 60.0), 0.50)
         self.assertEqual(calculate_speed_factor(120.0, 240.0), 2.00)
+
+    @patch("audio_effects.transform_audio")
+    def test_preview_uses_selected_processing_and_20_second_limit(
+        self, transform_audio_mock
+    ):
+        source = Path("source.wav")
+        output = Path("preview.mp3")
+        transform_audio_mock.return_value = output
+
+        result = create_speed_preview(
+            source,
+            output,
+            speed=1.25,
+            pitch_semitones=-2.0,
+        )
+
+        self.assertEqual(result, output)
+        call = transform_audio_mock.call_args
+        self.assertEqual(call.args[:2], (source, output))
+        self.assertEqual(
+            call.kwargs["output_duration_seconds"], SPEED_PREVIEW_SECONDS
+        )
+        filters = call.kwargs["filters"]
+        self.assertIn("asetrate=48000*0.8908987181403393", filters)
+        self.assertIn("atempo=1.4030775603867163", filters)
+
+    def test_rejects_non_positive_output_duration(self):
+        with tempfile.TemporaryDirectory() as temp_directory:
+            source = Path(temp_directory) / "source.wav"
+            source.touch()
+
+            with self.assertRaises(AudioProcessingError):
+                transform_audio(
+                    source,
+                    Path(temp_directory) / "output.wav",
+                    output_duration_seconds=0,
+                )
 
 
 @unittest.skipUnless(shutil.which("ffmpeg"), "FFmpeg is required")
@@ -158,6 +201,40 @@ class AudioEngineIntegrationTest(unittest.TestCase):
 
             self.assertAlmostEqual(output_duration, 1.0, delta=0.03)
             self.assertAlmostEqual(dominant_frequency, 880.0, delta=10.0)
+
+    def test_preview_is_limited_to_20_processed_seconds(self):
+        with tempfile.TemporaryDirectory() as temp_directory:
+            source = Path(temp_directory) / "source.wav"
+            output = Path(temp_directory) / "preview.wav"
+
+            subprocess.run(
+                [
+                    shutil.which("ffmpeg"),
+                    "-hide_banner",
+                    "-loglevel",
+                    "error",
+                    "-f",
+                    "lavfi",
+                    "-i",
+                    "sine=frequency=440:duration=25",
+                    str(source),
+                ],
+                check=True,
+            )
+
+            create_speed_preview(
+                source,
+                output,
+                speed=0.8,
+                pitch_semitones=3.0,
+            )
+
+            with wave.open(str(output), "rb") as preview_audio:
+                preview_duration = (
+                    preview_audio.getnframes() / preview_audio.getframerate()
+                )
+
+            self.assertAlmostEqual(preview_duration, 20.0, delta=0.03)
 
 
 if __name__ == "__main__":

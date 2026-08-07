@@ -25,6 +25,7 @@ def transform_audio(
     input_path: Path,
     output_path: Path,
     filters: Optional[Iterable[str]] = None,
+    output_duration_seconds: Optional[float] = None,
 ) -> Path:
     """Transform an audio file with FFmpeg and return the output path."""
     input_path = Path(input_path)
@@ -49,6 +50,13 @@ def transform_audio(
     audio_filters = list(filters or [])
     if audio_filters:
         command.extend(["-af", ",".join(audio_filters)])
+
+    if output_duration_seconds is not None:
+        if output_duration_seconds <= 0:
+            raise AudioProcessingError(
+                "Output duration must be greater than zero."
+            )
+        command.extend(["-t", str(output_duration_seconds)])
 
     command.append(str(output_path))
 

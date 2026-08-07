@@ -12,6 +12,7 @@ MAX_SPEED_FACTOR = 2.00
 MIN_PITCH_SEMITONES = -12.0
 MAX_PITCH_SEMITONES = 12.0
 OUTPUT_SAMPLE_RATE = 48_000
+SPEED_PREVIEW_SECONDS = 20.0
 
 
 def _validate_speed_factor(speed: float) -> None:
@@ -56,6 +57,7 @@ def change_speed(
     output_path: Path,
     speed: float = 1.20,
     pitch_semitones: Optional[float] = None,
+    output_duration_seconds: Optional[float] = None,
 ) -> Path:
     """Change speed and optionally control pitch independently."""
     _validate_speed_factor(speed)
@@ -77,4 +79,25 @@ def change_speed(
     ]
     filters.extend(_atempo_filters(speed / pitch_factor))
 
-    return transform_audio(input_path, output_path, filters=filters)
+    return transform_audio(
+        input_path,
+        output_path,
+        filters=filters,
+        output_duration_seconds=output_duration_seconds,
+    )
+
+
+def create_speed_preview(
+    input_path: Path,
+    output_path: Path,
+    speed: float,
+    pitch_semitones: Optional[float] = None,
+) -> Path:
+    """Create a processed Speed Changer preview of up to 20 seconds."""
+    return change_speed(
+        input_path,
+        output_path,
+        speed=speed,
+        pitch_semitones=pitch_semitones,
+        output_duration_seconds=SPEED_PREVIEW_SECONDS,
+    )
