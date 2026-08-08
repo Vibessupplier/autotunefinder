@@ -47,6 +47,11 @@
   audio after processing unless persistent storage is intentionally designed.
 - Keep waveform selection in the UI, but perform sample extraction and export
   through reusable product-level functions backed by `audio_engine.py`.
+- Build the future Mastering Analyzer as a focused Analyze tool. Keep LUFS,
+  peak/true-peak, dynamic-range, stereo-width, phase-correlation, and mono
+  compatibility measurements in reusable analysis modules rather than the page.
+- Present mastering measurements with their units, measurement method, and
+  limitations. Do not reduce mastering quality to a single unexplained score.
 
 ## Current application structure
 
@@ -96,5 +101,8 @@
 - Plan Audio Chopper as a focused Pro tool with a waveform, user-selected start
   and end points, fragment preview, and sample export. Do not duplicate its
   trimming engine inside the page.
+- Plan Mastering Analyzer as a future focused page for LUFS, dBFS/true peak,
+  dynamics, stereo balance and width, phase correlation, mono compatibility,
+  and spectral balance. Keep it distinct from any future AI Mastering product.
 - Defer accounts, subscriptions, billing, and persistent user files until their
   product and infrastructure requirements are designed.

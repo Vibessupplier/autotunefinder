@@ -26,7 +26,7 @@
 - [x] MP3 export and download
 - [x] 20-second processed preview
 - [x] Invalidate preview when speed or pitch changes
-- [ ] Improve Speed Changer controls and player UI
+- [x] Improve Speed Changer controls and player UI
 
 ---
 
@@ -63,13 +63,23 @@
 
 ---
 
+## Future Analyze Tools
+- [ ] Mastering Analyzer page
+- [ ] Integrated, short-term, and momentary LUFS measurements
+- [ ] Peak and true-peak level measurements in dBFS
+- [ ] Loudness range and dynamic-range indicators
+- [ ] Stereo balance, width, phase correlation, and mono compatibility
+- [ ] Clear mastering-oriented result summaries and reference ranges
+- [ ] Spectral balance visualization
+
+---
+
 ## Future Ideas
 - [ ] Pro Audio Chopper page
 - [ ] Interactive waveform with start and end selection
 - [ ] Preview the selected audio fragment
 - [ ] Export user-selected samples in MP3 and WAV
 - [ ] Multi-stem separation (vocals, drums, bass, and other)
-- [ ] LUFS Analyzer
 - [ ] Spectrogram
 - [ ] AI Mix Assistant
 - [ ] AI Mastering
