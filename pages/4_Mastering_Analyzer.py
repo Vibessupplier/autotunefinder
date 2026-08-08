@@ -18,6 +18,16 @@ from mastering_analysis import (
 from ui import load_design, show_header, show_tool_header
 
 
+SPECTRAL_RANGE_LABELS = {
+    "Sub": "20–60 Hz",
+    "Bass": "60–250 Hz",
+    "Low mids": "250–500 Hz",
+    "Mids": "500 Hz–2 kHz",
+    "High mids": "2–6 kHz",
+    "Highs": "6–20 kHz",
+}
+
+
 @st.cache_data(show_spinner=False)
 def analyze_uploaded_master(
     audio_data: bytes,
@@ -129,6 +139,9 @@ def render_spectral_balance(
     reference_values = dict(reference.items()) if reference is not None else {}
     rows = []
     for label, track_value in spectral.items():
+        display_label = (
+            f"{label}<small>{SPECTRAL_RANGE_LABELS[label]}</small>"
+        )
         if reference is None:
             value = f"{track_value:.1f}%"
             bars = (
@@ -142,7 +155,7 @@ def render_spectral_balance(
                 f"<div class='spectrum-track master'><i style='width:{track_value:.2f}%'></i></div>"
             )
         rows.append(
-            f"<div class='spectrum-row'><div class='spectrum-label'>{label}</div>"
+            f"<div class='spectrum-row'><div class='spectrum-label'>{display_label}</div>"
             f"<div class='spectrum-bars'>{bars}</div>"
             f"<div class='spectrum-value'>{value}</div></div>"
         )
@@ -159,7 +172,8 @@ def render_spectral_balance(
         <style>
         .spectrum-panel { padding:1rem; border:1px solid var(--line); border-radius:12px 5px 12px 5px; background:rgba(8,17,13,.72); }
         .spectrum-row { display:grid; grid-template-columns:6.2rem 1fr 4rem; align-items:center; gap:.8rem; min-height:2.55rem; }
-        .spectrum-label { color:var(--sand); font-weight:600; font-size:.82rem; }
+        .spectrum-label { color:var(--sand); font-weight:600; font-size:.82rem; line-height:1.15; }
+        .spectrum-label small { display:block; margin-top:.18rem; color:var(--muted); font-family:var(--font-technical); font-size:.62rem; font-weight:500; }
         .spectrum-bars { display:grid; gap:.3rem; }
         .spectrum-track { height:.5rem; overflow:hidden; background:rgba(216,195,154,.13); border-radius:99px; }
         .spectrum-track i { display:block; min-width:2px; height:100%; background:var(--lime); box-shadow:0 0 8px rgba(184,255,61,.22); }

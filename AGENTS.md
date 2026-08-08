@@ -69,6 +69,7 @@
 - `audio_analysis.py`: key, BPM, and Camelot analysis logic.
 - `audio_engine.py`: reusable FFmpeg runner and processing errors.
 - `audio_effects.py`: reusable product-level audio transformations.
+- `mastering_analysis.py`: loudness, stereo, and static spectral analysis.
 - `stem_separation.py`: product-level local and cloud vocal separation.
 - `cloud_stem_separation.py`: private Modal vocal separation client.
 - `modal_vocal_split_server.py`: private zero-retention Modal GPU server.
@@ -112,8 +113,9 @@
 - Plan Audio Chopper as a focused Pro tool with a waveform, user-selected start
   and end points, fragment preview, and sample export. Do not duplicate its
   trimming engine inside the page.
-- Plan Mastering Analyzer as a future focused page for LUFS, dBFS/true peak,
-  dynamics, stereo balance and width, phase correlation, mono compatibility,
-  and spectral balance. Keep it distinct from any future AI Mastering product.
+- The Mastering Analyzer now provides LUFS, dBFS/true peak, dynamics, stereo
+  measurements, mono compatibility, A/B reference comparison, Volume Match,
+  and static spectral balance. Keep it distinct from any future AI Mastering
+  product.
 - Defer accounts, subscriptions, billing, and persistent user files until their
   product and infrastructure requirements are designed.
