@@ -8,12 +8,48 @@ from stem_separation import (
     VOCAL_PREVIEW_SECONDS,
     StemSeparationError,
     VocalSplitResult,
+    create_cloud_vocal_split_preview,
     create_vocal_split_preview,
     separate_vocals,
 )
 
 
 class StemSeparationTest(unittest.TestCase):
+    @patch("stem_separation.separate_vocals_in_cloud")
+    @patch("stem_separation.transform_audio")
+    def test_cloud_preview_extracts_segment_before_upload(
+        self, transform_mock, cloud_mock
+    ):
+        with tempfile.TemporaryDirectory() as temp_directory:
+            temporary_path = Path(temp_directory)
+            source = temporary_path / "source.mp3"
+            preview = temporary_path / "preview.wav"
+            source.touch()
+            preview.write_bytes(b"preview audio")
+
+            create_cloud_vocal_split_preview(
+                source,
+                preview,
+                30.0,
+                "https://test.eu-west.modal.direct",
+                "token-id",
+                "token-secret",
+            )
+
+            transform_mock.assert_called_once_with(
+                source,
+                preview,
+                input_start_seconds=30.0,
+                output_duration_seconds=VOCAL_PREVIEW_SECONDS,
+            )
+            cloud_mock.assert_called_once_with(
+                b"preview audio",
+                ".wav",
+                "https://test.eu-west.modal.direct",
+                "token-id",
+                "token-secret",
+            )
+
     @patch("stem_separation.separate_vocals")
     @patch("stem_separation.transform_audio")
     def test_preview_extracts_only_selected_20_seconds(

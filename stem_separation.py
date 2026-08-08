@@ -6,6 +6,11 @@ import subprocess
 import sys
 
 from audio_engine import AudioProcessingError, transform_audio
+from cloud_stem_separation import (
+    CloudStemSeparationError,
+    CloudVocalSplitResult,
+    separate_vocals_in_cloud,
+)
 
 
 VOCAL_PREVIEW_SECONDS = 20.0
@@ -42,6 +47,36 @@ def create_vocal_split_preview(
         raise StemSeparationError(str(error)) from error
 
     return separate_vocals(preview_path, output_directory)
+
+
+def create_cloud_vocal_split_preview(
+    input_path: Path,
+    preview_path: Path,
+    start_seconds: float,
+    endpoint: str,
+    token_id: str,
+    token_secret: str,
+) -> CloudVocalSplitResult:
+    """Extract a 20-second segment and separate it on the private GPU server."""
+    if start_seconds < 0:
+        raise StemSeparationError("Preview start time cannot be negative.")
+
+    try:
+        transform_audio(
+            input_path,
+            preview_path,
+            input_start_seconds=start_seconds,
+            output_duration_seconds=VOCAL_PREVIEW_SECONDS,
+        )
+        return separate_vocals_in_cloud(
+            preview_path.read_bytes(),
+            preview_path.suffix,
+            endpoint,
+            token_id,
+            token_secret,
+        )
+    except (AudioProcessingError, CloudStemSeparationError) as error:
+        raise StemSeparationError(str(error)) from error
 
 
 def separate_vocals(

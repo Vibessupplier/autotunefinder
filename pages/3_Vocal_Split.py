@@ -7,6 +7,7 @@ from audio_engine import probe_audio_duration
 from stem_separation import (
     VOCAL_PREVIEW_SECONDS,
     StemSeparationError,
+    create_cloud_vocal_split_preview,
     create_vocal_split_preview,
     separate_vocals,
 )
@@ -27,14 +28,35 @@ def format_time(seconds: float) -> str:
     return f"{minutes}:{remaining_seconds:02d}"
 
 
+def get_modal_settings():
+    """Return private Modal settings when all required secrets are present."""
+    try:
+        settings = st.secrets.get("modal_vocal_split")
+    except FileNotFoundError:
+        return None
+
+    if settings is None:
+        return None
+
+    required_keys = ("endpoint", "token_id", "token_secret")
+    if not all(settings.get(key) for key in required_keys):
+        return None
+    return settings
+
+
 load_design()
 show_header()
 
 st.title("Vocal Remover & Acapella Extractor")
 st.write("Separate a track into an acapella and an instrumental.")
-st.info(
-    "Local prototype: processing runs on this Mac and can take several minutes."
-)
+modal_settings = get_modal_settings()
+if modal_settings is None:
+    st.info(
+        "Local prototype: processing runs on this Mac and can take several "
+        "minutes."
+    )
+else:
+    st.info("20-second previews are processed securely on a private GPU.")
 
 audio_file = st.file_uploader(
     "Upload your audio",
@@ -97,18 +119,33 @@ if audio_file is not None:
                     temporary_path = Path(temp_directory)
                     input_path = temporary_path / f"input{suffix}"
                     preview_path = temporary_path / "preview.wav"
-                    output_directory = temporary_path / "preview-stems"
                     input_path.write_bytes(audio_data)
 
-                    split = create_vocal_split_preview(
-                        input_path,
-                        preview_path,
-                        output_directory,
-                        start_seconds=preview_start,
-                    )
+                    if modal_settings is None:
+                        output_directory = temporary_path / "preview-stems"
+                        split = create_vocal_split_preview(
+                            input_path,
+                            preview_path,
+                            output_directory,
+                            start_seconds=preview_start,
+                        )
+                        vocals = split.vocals_path.read_bytes()
+                        instrumental = split.instrumental_path.read_bytes()
+                    else:
+                        split = create_cloud_vocal_split_preview(
+                            input_path,
+                            preview_path,
+                            preview_start,
+                            modal_settings["endpoint"],
+                            modal_settings["token_id"],
+                            modal_settings["token_secret"],
+                        )
+                        vocals = split.vocals
+                        instrumental = split.instrumental
+
                     st.session_state["vocal_split_preview"] = {
-                        "vocals": split.vocals_path.read_bytes(),
-                        "instrumental": split.instrumental_path.read_bytes(),
+                        "vocals": vocals,
+                        "instrumental": instrumental,
                         "start": preview_start,
                         "end": preview_end,
                     }
@@ -127,13 +164,20 @@ if audio_file is not None:
         st.subheader("Instrumental preview")
         st.audio(preview["instrumental"], format="audio/mpeg")
 
+    if modal_settings is not None:
+        st.divider()
+        st.subheader("Full track")
+        st.caption(
+            "Full-track separation will be included in the future Producer plan."
+        )
+        st.stop()
+
     st.divider()
     st.subheader("Full track — local test")
     st.caption(
         "Full-track processing currently runs only on this Mac and may take "
         "10–20 minutes."
     )
-
     if st.button("SEPARATE FULL TRACK"):
         with st.spinner(
             "Separating vocals... Keep this page open. This may take several minutes."
