@@ -3,6 +3,7 @@ import tempfile
 
 import streamlit as st
 
+from analytics import track_page_view
 from audio_engine import probe_audio_duration
 from stem_separation import (
     VOCAL_PREVIEW_SECONDS,
@@ -53,6 +54,7 @@ def is_vocal_split_enabled() -> bool:
 
 
 load_design()
+track_page_view("vocal_split")
 show_header()
 show_tool_header(
     "Separate / 03",

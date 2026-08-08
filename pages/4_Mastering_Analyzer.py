@@ -3,6 +3,7 @@ import tempfile
 
 import streamlit as st
 
+from analytics import track_event, track_page_view
 from mastering_analysis import (
     MasteringAnalysisError,
     MasteringMetrics,
@@ -251,6 +252,7 @@ def analysis_help() -> None:
 
 
 load_design()
+track_page_view("mastering_analyzer")
 show_header()
 show_tool_header(
     "Analyze / 04",
@@ -326,6 +328,11 @@ if analysis_mode == "Compare with reference":
             reference_metrics, _ = reference_report
             track_metrics, _ = track_report
             st.success("A / B analysis complete.")
+            track_event(
+                "audio_comparison_completed",
+                {"tool": "mastering_analyzer"},
+                once_key=f"comparison_{comparison_signature}",
+            )
             render_comparison(reference_report, track_report)
 
             st.subheader("A / B listening")
@@ -336,6 +343,11 @@ if analysis_mode == "Compare with reference":
                     "Matches both players to the quieter integrated LUFS level. "
                     "Turn it off to hear their real loudness difference."
                 ),
+            )
+            track_event(
+                "volume_match_selected",
+                {"tool": "mastering_analyzer", "enabled": volume_match},
+                once_key=f"volume_match_{volume_match}",
             )
             player_reference = reference_file.getvalue()
             player_track = track_file.getvalue()
@@ -440,6 +452,11 @@ if audio_file is not None:
     if report is not None:
         metrics, stereo = report
         st.success("Mastering analysis complete.")
+        track_event(
+            "audio_analysis_completed",
+            {"tool": "mastering_analyzer"},
+            once_key=f"mastering_{upload_signature}",
+        )
 
         st.subheader("Loudness & dynamics")
         loudness_column, range_column, rms_column = st.columns(3)

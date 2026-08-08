@@ -4,6 +4,7 @@ import tempfile
 
 import streamlit as st
 
+from analytics import track_event, track_page_view
 from audio_analysis import detect_bpm_from_file
 from audio_effects import (
     MAX_PITCH_SEMITONES,
@@ -27,6 +28,7 @@ def detect_uploaded_bpm(audio_data: bytes, suffix: str) -> float:
         return detect_bpm_from_file(input_path)
 
 load_design()
+track_page_view("speed_changer")
 show_header()
 show_tool_header(
     "Transform / 02",
@@ -150,6 +152,10 @@ if audio_file is not None:
                         pitch_semitones=processing_pitch,
                     )
                     st.session_state["speed_preview"] = output_path.read_bytes()
+                    track_event(
+                        "audio_preview_created",
+                        {"tool": "speed_changer", "pitch_mode": pitch_mode},
+                    )
             except (AudioProcessingError, OSError) as error:
                 st.error("The processed preview could not be created.")
                 st.code(str(error))
@@ -183,6 +189,10 @@ if audio_file is not None:
                         "target_bpm": target_bpm,
                         "pitch_semitones": pitch_semitones,
                     }
+                    track_event(
+                        "audio_processing_completed",
+                        {"tool": "speed_changer", "pitch_mode": pitch_mode},
+                    )
 
             except (AudioProcessingError, OSError) as error:
                 st.error("The speed-changed version could not be created.")

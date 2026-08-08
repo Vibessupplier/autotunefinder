@@ -60,6 +60,8 @@
 - Keep the browser player responsible for waveform, spectrogram, playhead, and
   responsive live meters. Keep FFmpeg analysis as the authoritative source for
   final LUFS, peak, and mastering-report measurements.
+- Keep product analytics centralized and optional. Never send uploaded audio,
+  filenames, raw cookies, IP addresses, or other unnecessary personal data.
 
 ## Current application structure
 
@@ -70,6 +72,7 @@
 - `stem_separation.py`: product-level local and cloud vocal separation.
 - `cloud_stem_separation.py`: private Modal vocal separation client.
 - `modal_vocal_split_server.py`: private zero-retention Modal GPU server.
+- `analytics.py`: optional privacy-conscious product-event tracking.
 - `ui.py`: shared Streamlit presentation helpers.
 - `pages/`: independent Streamlit tool pages.
 - `tests/`: automated tests.

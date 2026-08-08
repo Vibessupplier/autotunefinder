@@ -3,6 +3,7 @@ import librosa
 import tempfile
 import os
 
+from analytics import track_event, track_page_view
 from audio_analysis import (
     detect_key,
     detect_bpm,
@@ -18,6 +19,7 @@ from ui import load_design, show_header, show_tool_header
 # -------------------------
 
 load_design()
+track_page_view("key_bpm_finder")
 show_header()
 show_tool_header(
     "Analyze / 01",
@@ -115,6 +117,8 @@ if audio_file is not None:
                 bpm_options = get_bpm_options(
                     bpm
                 )
+
+                track_event("audio_analysis_completed", {"tool": "key_bpm_finder"})
 
 
                 # -------------------------
