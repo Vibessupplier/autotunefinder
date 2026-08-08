@@ -21,6 +21,12 @@ pages = [
         icon="⚡",
         url_path="speed-changer",
     ),
+    st.Page(
+        "pages/3_Vocal_Split.py",
+        title="Vocal Split",
+        icon="🎤",
+        url_path="vocal-split",
+    ),
 ]
 
 navigation = st.navigation(pages, position="sidebar")
