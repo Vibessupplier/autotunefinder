@@ -52,6 +52,8 @@
   compatibility measurements in reusable analysis modules rather than the page.
 - Present mastering measurements with their units, measurement method, and
   limitations. Do not reduce mastering quality to a single unexplained score.
+- Keep A/B comparison measurements based on the original uploaded masters.
+  Volume Match may alter temporary listening copies only and must be optional.
 - Build future live Mastering Analyzer visuals as a reusable browser-side audio
   player component backed by the Web Audio API. Streamlit reruns must not drive
   real-time meters or playback synchronization.

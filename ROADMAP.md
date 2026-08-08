@@ -72,6 +72,8 @@
 - [ ] Additional dynamic-range indicators
 - [x] Static stereo balance, width, phase correlation, and mono compatibility
 - [x] Clear mastering-oriented result summaries and measurement explanations
+- [x] A/B mastering comparison against a user-selected reference track
+- [x] Optional non-destructive Volume Match for reference listening
 - [ ] Configurable mastering reference ranges
 - [ ] Spectral balance visualization
 - [ ] Custom synchronized audio player for the Mastering Analyzer

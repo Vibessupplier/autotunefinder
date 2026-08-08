@@ -211,3 +211,36 @@ def analyze_stereo(input_path: Path) -> StereoMetrics:
             return _analyze_stereo_wav(decoded_path)
     except (AudioProcessingError, sf.LibsndfileError) as error:
         raise MasteringAnalysisError(str(error)) from error
+
+
+def calculate_volume_match_gains(
+    reference_lufs: float,
+    track_lufs: float,
+) -> tuple[float, float]:
+    """Return non-positive gains that match both tracks to the quieter one."""
+    if not math.isfinite(reference_lufs) or not math.isfinite(track_lufs):
+        raise MasteringAnalysisError("Volume Match requires finite LUFS values.")
+
+    target_lufs = min(reference_lufs, track_lufs)
+    return target_lufs - reference_lufs, target_lufs - track_lufs
+
+
+def create_volume_matched_audio(
+    input_path: Path,
+    output_path: Path,
+    gain_db: float,
+) -> Path:
+    """Create a listening copy with a validated, attenuation-only gain."""
+    if not math.isfinite(gain_db) or gain_db > 0:
+        raise MasteringAnalysisError(
+            "Volume Match gain must be a finite attenuation value."
+        )
+
+    try:
+        return transform_audio(
+            input_path,
+            output_path,
+            filters=[f"volume={gain_db:.4f}dB"],
+        )
+    except AudioProcessingError as error:
+        raise MasteringAnalysisError(str(error)) from error

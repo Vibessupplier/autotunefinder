@@ -13,6 +13,8 @@ from mastering_analysis import (
     MasteringAnalysisError,
     analyze_mastering,
     analyze_stereo,
+    calculate_volume_match_gains,
+    create_volume_matched_audio,
     parse_mastering_output,
 )
 
@@ -36,6 +38,37 @@ SAMPLE_OUTPUT = """
 
 
 class MasteringAnalysisTest(unittest.TestCase):
+    def test_volume_match_attenuates_only_the_louder_track(self):
+        reference_gain, track_gain = calculate_volume_match_gains(-9.0, -12.5)
+
+        self.assertEqual(reference_gain, -3.5)
+        self.assertEqual(track_gain, 0.0)
+
+    def test_volume_match_handles_quieter_reference(self):
+        reference_gain, track_gain = calculate_volume_match_gains(-14.0, -10.0)
+
+        self.assertEqual(reference_gain, 0.0)
+        self.assertEqual(track_gain, -4.0)
+
+    @patch("mastering_analysis.transform_audio")
+    def test_volume_match_uses_shared_audio_engine(self, transform_mock):
+        source = Path("source.wav")
+        output = Path("matched.wav")
+        transform_mock.return_value = output
+
+        result = create_volume_matched_audio(source, output, -2.25)
+
+        self.assertEqual(result, output)
+        transform_mock.assert_called_once_with(
+            source,
+            output,
+            filters=["volume=-2.2500dB"],
+        )
+
+    def test_volume_match_rejects_gain_boost(self):
+        with self.assertRaisesRegex(MasteringAnalysisError, "attenuation"):
+            create_volume_matched_audio(Path("source.wav"), Path("out.wav"), 1.0)
+
     def test_parses_final_loudness_and_level_summaries(self):
         metrics = parse_mastering_output(SAMPLE_OUTPUT, 183.5)
 
