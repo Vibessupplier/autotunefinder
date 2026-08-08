@@ -14,7 +14,11 @@ from audio_effects import (
     change_speed,
     create_speed_preview,
 )
-from audio_engine import AudioProcessingError, transform_audio
+from audio_engine import (
+    AudioProcessingError,
+    probe_audio_duration,
+    transform_audio,
+)
 
 
 class AudioEffectsTest(unittest.TestCase):
@@ -92,6 +96,27 @@ class AudioEngineIntegrationTest(unittest.TestCase):
             self.assertEqual(result, output)
             self.assertTrue(output.is_file())
             self.assertGreater(output.stat().st_size, 0)
+
+    def test_probes_audio_duration(self):
+        with tempfile.TemporaryDirectory() as temp_directory:
+            source = Path(temp_directory) / "source.wav"
+
+            subprocess.run(
+                [
+                    shutil.which("ffmpeg"),
+                    "-hide_banner",
+                    "-loglevel",
+                    "error",
+                    "-f",
+                    "lavfi",
+                    "-i",
+                    "sine=frequency=440:duration=1.5",
+                    str(source),
+                ],
+                check=True,
+            )
+
+            self.assertAlmostEqual(probe_audio_duration(source), 1.5, places=2)
 
     def test_faster_output_is_shorter_than_source(self):
         with tempfile.TemporaryDirectory() as temp_directory:

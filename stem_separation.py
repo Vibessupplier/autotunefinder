@@ -5,6 +5,11 @@ from pathlib import Path
 import subprocess
 import sys
 
+from audio_engine import AudioProcessingError, transform_audio
+
+
+VOCAL_PREVIEW_SECONDS = 20.0
+
 
 class StemSeparationError(RuntimeError):
     """Raised when vocal separation cannot be completed."""
@@ -14,6 +19,29 @@ class StemSeparationError(RuntimeError):
 class VocalSplitResult:
     vocals_path: Path
     instrumental_path: Path
+
+
+def create_vocal_split_preview(
+    input_path: Path,
+    preview_path: Path,
+    output_directory: Path,
+    start_seconds: float,
+) -> VocalSplitResult:
+    """Extract and separate a 20-second vocal preview."""
+    if start_seconds < 0:
+        raise StemSeparationError("Preview start time cannot be negative.")
+
+    try:
+        transform_audio(
+            input_path,
+            preview_path,
+            input_start_seconds=start_seconds,
+            output_duration_seconds=VOCAL_PREVIEW_SECONDS,
+        )
+    except AudioProcessingError as error:
+        raise StemSeparationError(str(error)) from error
+
+    return separate_vocals(preview_path, output_directory)
 
 
 def separate_vocals(

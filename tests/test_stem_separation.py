@@ -4,10 +4,54 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from stem_separation import StemSeparationError, separate_vocals
+from stem_separation import (
+    VOCAL_PREVIEW_SECONDS,
+    StemSeparationError,
+    VocalSplitResult,
+    create_vocal_split_preview,
+    separate_vocals,
+)
 
 
 class StemSeparationTest(unittest.TestCase):
+    @patch("stem_separation.separate_vocals")
+    @patch("stem_separation.transform_audio")
+    def test_preview_extracts_only_selected_20_seconds(
+        self, transform_mock, separate_mock
+    ):
+        source = Path("source.mp3")
+        preview = Path("preview.wav")
+        output = Path("output")
+        expected = VocalSplitResult(
+            Path("vocals.mp3"), Path("no_vocals.mp3")
+        )
+        separate_mock.return_value = expected
+
+        result = create_vocal_split_preview(
+            source,
+            preview,
+            output,
+            start_seconds=45.0,
+        )
+
+        self.assertEqual(result, expected)
+        transform_mock.assert_called_once_with(
+            source,
+            preview,
+            input_start_seconds=45.0,
+            output_duration_seconds=VOCAL_PREVIEW_SECONDS,
+        )
+        separate_mock.assert_called_once_with(preview, output)
+
+    def test_preview_rejects_negative_start_time(self):
+        with self.assertRaisesRegex(StemSeparationError, "cannot be negative"):
+            create_vocal_split_preview(
+                Path("source.mp3"),
+                Path("preview.wav"),
+                Path("output"),
+                start_seconds=-1.0,
+            )
+
     @patch("stem_separation.subprocess.run")
     def test_separates_vocals_and_instrumental_with_safe_command(self, run_mock):
         with tempfile.TemporaryDirectory() as temp_directory:
