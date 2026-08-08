@@ -9,11 +9,18 @@ st.set_page_config(
 )
 
 pages = {
+    "HOME": [
+        st.Page(
+            "pages/0_Home.py",
+            title="Vibes Supplier",
+            default=True,
+        ),
+    ],
     "ANALYZE": [
         st.Page(
             "pages/1_Key_BPM_Finder.py",
             title="Key & BPM Finder",
-            default=True,
+            url_path="key-bpm-finder",
         ),
     ],
     "TRANSFORM": [
