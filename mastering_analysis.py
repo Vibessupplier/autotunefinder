@@ -6,6 +6,7 @@ from pathlib import Path
 import re
 import tempfile
 
+import numpy as np
 import soundfile as sf
 
 from audio_engine import (
@@ -18,6 +19,14 @@ from audio_engine import (
 
 MASTERING_FILTER = "ebur128=peak=true,astats=metadata=0:reset=0"
 NUMBER_PATTERN = r"[-+]?(?:\d+(?:\.\d+)?|inf)"
+SPECTRAL_BANDS = (
+    ("Sub", 20.0, 60.0),
+    ("Bass", 60.0, 250.0),
+    ("Low mids", 250.0, 500.0),
+    ("Mids", 500.0, 2_000.0),
+    ("High mids", 2_000.0, 6_000.0),
+    ("Highs", 6_000.0, 20_000.0),
+)
 
 
 class MasteringAnalysisError(RuntimeError):
@@ -40,6 +49,17 @@ class StereoMetrics:
     balance_db: float
     width_percent: float
     correlation: float
+
+
+@dataclass(frozen=True)
+class SpectralMetrics:
+    band_percentages: tuple[float, ...]
+
+    def items(self) -> tuple[tuple[str, float], ...]:
+        return tuple(
+            (band[0], percentage)
+            for band, percentage in zip(SPECTRAL_BANDS, self.band_percentages)
+        )
 
 
 def _last_measurement(output: str, label: str) -> float:
@@ -209,6 +229,57 @@ def analyze_stereo(input_path: Path) -> StereoMetrics:
             decoded_path = Path(temp_directory) / "stereo-analysis.wav"
             transform_audio(input_path, decoded_path)
             return _analyze_stereo_wav(decoded_path)
+    except (AudioProcessingError, sf.LibsndfileError) as error:
+        raise MasteringAnalysisError(str(error)) from error
+
+
+def _analyze_spectral_wav(wav_path: Path) -> SpectralMetrics:
+    """Measure normalized energy across broad mastering frequency bands."""
+    fft_size = 4096
+    hop_size = fft_size // 2
+    window = np.hanning(fft_size)
+    band_energy = np.zeros(len(SPECTRAL_BANDS), dtype=np.float64)
+    frame_count = 0
+
+    with sf.SoundFile(wav_path) as audio_file:
+        sample_rate = audio_file.samplerate
+        frequencies = np.fft.rfftfreq(fft_size, d=1.0 / sample_rate)
+        masks = [
+            (frequencies >= low) & (frequencies < min(high, sample_rate / 2))
+            for _, low, high in SPECTRAL_BANDS
+        ]
+
+        for block in audio_file.blocks(
+            blocksize=65536,
+            overlap=fft_size - hop_size,
+            dtype="float32",
+            always_2d=True,
+        ):
+            mono = block.mean(axis=1, dtype=np.float64)
+            for start in range(0, len(mono) - fft_size + 1, hop_size):
+                spectrum = np.fft.rfft(mono[start : start + fft_size] * window)
+                power = np.abs(spectrum) ** 2
+                for index, mask in enumerate(masks):
+                    band_energy[index] += float(power[mask].sum())
+                frame_count += 1
+
+    total_energy = float(band_energy.sum())
+    if frame_count == 0 or total_energy <= 1e-12:
+        raise MasteringAnalysisError(
+            "The track is too short or quiet for spectral analysis."
+        )
+
+    percentages = tuple(float(value * 100.0 / total_energy) for value in band_energy)
+    return SpectralMetrics(band_percentages=percentages)
+
+
+def analyze_spectral_balance(input_path: Path) -> SpectralMetrics:
+    """Decode a source safely and return normalized broad-band energy."""
+    try:
+        with tempfile.TemporaryDirectory() as temp_directory:
+            decoded_path = Path(temp_directory) / "spectral-analysis.wav"
+            transform_audio(input_path, decoded_path)
+            return _analyze_spectral_wav(decoded_path)
     except (AudioProcessingError, sf.LibsndfileError) as error:
         raise MasteringAnalysisError(str(error)) from error
 

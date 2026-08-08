@@ -76,7 +76,7 @@
 - [x] A/B mastering comparison against a user-selected reference track
 - [x] Optional non-destructive Volume Match for reference listening
 - [ ] Configurable mastering reference ranges
-- [ ] Spectral balance visualization
+- [x] Static spectral balance visualization and A/B comparison
 - [ ] Custom synchronized audio player for the Mastering Analyzer
 - [ ] Interactive waveform and spectrogram with clickable playhead
 - [ ] Live peak, RMS, momentary LUFS, and short-term LUFS meters

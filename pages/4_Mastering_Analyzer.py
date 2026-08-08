@@ -7,8 +7,10 @@ from analytics import track_event, track_page_view
 from mastering_analysis import (
     MasteringAnalysisError,
     MasteringMetrics,
+    SpectralMetrics,
     StereoMetrics,
     analyze_mastering,
+    analyze_spectral_balance,
     analyze_stereo,
     calculate_volume_match_gains,
     create_volume_matched_audio,
@@ -20,12 +22,16 @@ from ui import load_design, show_header, show_tool_header
 def analyze_uploaded_master(
     audio_data: bytes,
     suffix: str,
-) -> tuple[MasteringMetrics, StereoMetrics]:
+) -> tuple[MasteringMetrics, StereoMetrics, SpectralMetrics]:
     """Cache analysis so Streamlit reruns do not process the same file again."""
     with tempfile.TemporaryDirectory() as temp_directory:
         input_path = Path(temp_directory) / f"master{suffix}"
         input_path.write_bytes(audio_data)
-        return analyze_mastering(input_path), analyze_stereo(input_path)
+        return (
+            analyze_mastering(input_path),
+            analyze_stereo(input_path),
+            analyze_spectral_balance(input_path),
+        )
 
 
 @st.cache_data(show_spinner=False)
@@ -111,6 +117,67 @@ def audio_mime_type(filename: str) -> str:
     }.get(Path(filename).suffix.lower(), "audio/mpeg")
 
 
+def render_spectral_balance(
+    spectral: SpectralMetrics,
+    reference: SpectralMetrics | None = None,
+) -> None:
+    st.subheader("Spectral balance")
+    st.caption(
+        "Normalized energy across broad frequency bands. This is a tonal "
+        "comparison, not an EQ target or a quality score."
+    )
+    reference_values = dict(reference.items()) if reference is not None else {}
+    rows = []
+    for label, track_value in spectral.items():
+        if reference is None:
+            value = f"{track_value:.1f}%"
+            bars = (
+                f"<div class='spectrum-track master'><i style='width:{track_value:.2f}%'></i></div>"
+            )
+        else:
+            reference_value = reference_values[label]
+            value = f"{track_value - reference_value:+.1f}%"
+            bars = (
+                f"<div class='spectrum-track reference'><i style='width:{reference_value:.2f}%'></i></div>"
+                f"<div class='spectrum-track master'><i style='width:{track_value:.2f}%'></i></div>"
+            )
+        rows.append(
+            f"<div class='spectrum-row'><div class='spectrum-label'>{label}</div>"
+            f"<div class='spectrum-bars'>{bars}</div>"
+            f"<div class='spectrum-value'>{value}</div></div>"
+        )
+    legend = (
+        ""
+        if reference is None
+        else (
+            "<div class='spectrum-legend'><span>REFERENCE</span>"
+            "<span class='master'>YOUR MASTER</span></div>"
+        )
+    )
+    st.markdown(
+        """
+        <style>
+        .spectrum-panel { padding:1rem; border:1px solid var(--line); border-radius:12px 5px 12px 5px; background:rgba(8,17,13,.72); }
+        .spectrum-row { display:grid; grid-template-columns:6.2rem 1fr 4rem; align-items:center; gap:.8rem; min-height:2.55rem; }
+        .spectrum-label { color:var(--sand); font-weight:600; font-size:.82rem; }
+        .spectrum-bars { display:grid; gap:.3rem; }
+        .spectrum-track { height:.5rem; overflow:hidden; background:rgba(216,195,154,.13); border-radius:99px; }
+        .spectrum-track i { display:block; min-width:2px; height:100%; background:var(--lime); box-shadow:0 0 8px rgba(184,255,61,.22); }
+        .spectrum-track.reference i { background:var(--sand); box-shadow:none; }
+        .spectrum-value { color:var(--lime); font-family:var(--font-technical); font-size:.78rem; font-weight:600; text-align:right; }
+        .spectrum-legend { display:flex; justify-content:flex-end; gap:1rem; margin-bottom:.7rem; color:var(--sand); font-size:.62rem; letter-spacing:.08em; }
+        .spectrum-legend span::before { content:""; display:inline-block; width:.65rem; height:.3rem; margin-right:.3rem; background:var(--sand); }
+        .spectrum-legend .master::before { background:var(--lime); }
+        @media(max-width:640px) { .spectrum-row { grid-template-columns:4.8rem 1fr 3.4rem; gap:.45rem; } }
+        </style><div class="spectrum-panel">
+        """
+        + legend
+        + "".join(rows)
+        + "</div>",
+        unsafe_allow_html=True,
+    )
+
+
 def render_report(metrics: MasteringMetrics, stereo: StereoMetrics) -> None:
     st.subheader("Loudness & dynamics")
     loudness_column, range_column, rms_column = st.columns(3)
@@ -140,11 +207,11 @@ def render_report(metrics: MasteringMetrics, stereo: StereoMetrics) -> None:
 
 
 def render_comparison(
-    reference_report: tuple[MasteringMetrics, StereoMetrics],
-    track_report: tuple[MasteringMetrics, StereoMetrics],
+    reference_report: tuple[MasteringMetrics, StereoMetrics, SpectralMetrics],
+    track_report: tuple[MasteringMetrics, StereoMetrics, SpectralMetrics],
 ) -> None:
-    reference, reference_stereo = reference_report
-    track, track_stereo = track_report
+    reference, reference_stereo, reference_spectral = reference_report
+    track, track_stereo, track_spectral = track_report
 
     st.subheader("Original measurements")
     st.caption(
@@ -236,6 +303,7 @@ def render_comparison(
         """,
         unsafe_allow_html=True,
     )
+    render_spectral_balance(track_spectral, reference_spectral)
 
 
 def analysis_help() -> None:
@@ -298,6 +366,7 @@ if analysis_mode == "Compare with reference":
 
     if reference_file is not None and track_file is not None:
         comparison_signature = (
+            "spectral-v1",
             reference_file.name,
             reference_file.size,
             track_file.name,
@@ -325,8 +394,8 @@ if analysis_mode == "Compare with reference":
         comparison_reports = st.session_state.get("comparison_reports")
         if comparison_reports is not None:
             reference_report, track_report = comparison_reports
-            reference_metrics, _ = reference_report
-            track_metrics, _ = track_report
+            reference_metrics, _, _ = reference_report
+            track_metrics, _, _ = track_report
             st.success("A / B analysis complete.")
             track_event(
                 "audio_comparison_completed",
@@ -425,7 +494,7 @@ if audio_file is not None:
 
     audio_data = audio_file.getvalue()
     suffix = Path(audio_file.name).suffix.lower()
-    upload_signature = (audio_file.name, audio_file.size)
+    upload_signature = ("spectral-v1", audio_file.name, audio_file.size)
 
     if st.session_state.get("mastering_signature") != upload_signature:
         st.session_state.pop("mastering_report", None)
@@ -450,7 +519,7 @@ if audio_file is not None:
 
     report = st.session_state.get("mastering_report")
     if report is not None:
-        metrics, stereo = report
+        metrics, stereo, spectral = report
         st.success("Mastering analysis complete.")
         track_event(
             "audio_analysis_completed",
@@ -555,6 +624,8 @@ if audio_file is not None:
             )
 
         st.info(stereo_context(stereo))
+
+        render_spectral_balance(spectral)
 
         with st.expander("HOW TO READ THESE RESULTS"):
             st.markdown(

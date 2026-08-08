@@ -12,6 +12,7 @@ from mastering_analysis import (
     MASTERING_FILTER,
     MasteringAnalysisError,
     analyze_mastering,
+    analyze_spectral_balance,
     analyze_stereo,
     calculate_volume_match_gains,
     create_volume_matched_audio,
@@ -102,6 +103,32 @@ class MasteringAnalysisTest(unittest.TestCase):
 
 @unittest.skipUnless(shutil.which("ffmpeg"), "FFmpeg is required")
 class MasteringAnalysisIntegrationTest(unittest.TestCase):
+    def test_places_low_tone_in_sub_band(self):
+        with tempfile.TemporaryDirectory() as temp_directory:
+            source = Path(temp_directory) / "sub.wav"
+            sample_rate = 48000
+            time = np.arange(sample_rate, dtype=np.float64) / sample_rate
+            tone = 0.25 * np.sin(2 * np.pi * 50 * time)
+            sf.write(source, tone, sample_rate)
+
+            metrics = analyze_spectral_balance(source)
+
+            bands = dict(metrics.items())
+            self.assertGreater(bands["Sub"], 90.0)
+            self.assertAlmostEqual(sum(bands.values()), 100.0, places=5)
+
+    def test_places_high_tone_in_highs_band(self):
+        with tempfile.TemporaryDirectory() as temp_directory:
+            source = Path(temp_directory) / "highs.wav"
+            sample_rate = 48000
+            time = np.arange(sample_rate, dtype=np.float64) / sample_rate
+            tone = 0.25 * np.sin(2 * np.pi * 8000 * time)
+            sf.write(source, tone, sample_rate)
+
+            bands = dict(analyze_spectral_balance(source).items())
+
+            self.assertGreater(bands["Highs"], 99.0)
+
     def test_analyzes_synthetic_audio(self):
         with tempfile.TemporaryDirectory() as temp_directory:
             source = Path(temp_directory) / "tone.wav"
