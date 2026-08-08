@@ -64,13 +64,21 @@
 ---
 
 ## Future Analyze Tools
-- [ ] Mastering Analyzer page
-- [ ] Integrated, short-term, and momentary LUFS measurements
-- [ ] Peak and true-peak level measurements in dBFS
-- [ ] Loudness range and dynamic-range indicators
+- [x] Mastering Analyzer page
+- [x] Integrated LUFS measurement
+- [ ] Short-term and momentary LUFS measurements
+- [x] Peak and true-peak level measurements in dBFS/dBTP
+- [x] Loudness range and RMS level indicators
+- [ ] Additional dynamic-range indicators
 - [ ] Stereo balance, width, phase correlation, and mono compatibility
-- [ ] Clear mastering-oriented result summaries and reference ranges
+- [x] Clear mastering-oriented result summaries and measurement explanations
+- [ ] Configurable mastering reference ranges
 - [ ] Spectral balance visualization
+- [ ] Custom synchronized audio player for the Mastering Analyzer
+- [ ] Interactive waveform and spectrogram with clickable playhead
+- [ ] Live peak, RMS, momentary LUFS, and short-term LUFS meters
+- [ ] Live frequency spectrum, stereo balance, and phase correlation meters
+- [ ] Highlight clipping and notable loudness sections on the timeline
 
 ---
 
