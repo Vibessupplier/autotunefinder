@@ -49,7 +49,21 @@ def _extract_wav_waveform(wav_path: Path, points: int) -> WaveformData:
                 sample_offset + np.arange(len(mono_peaks), dtype=np.int64)
             ) // samples_per_bin
             valid = bin_indices < points
-            np.maximum.at(peaks, bin_indices[valid], mono_peaks[valid])
+            valid_bins = bin_indices[valid]
+            valid_peaks = mono_peaks[valid]
+            if len(valid_bins):
+                group_starts = np.concatenate(
+                    (
+                        np.array([0], dtype=np.int64),
+                        np.flatnonzero(np.diff(valid_bins)) + 1,
+                    )
+                )
+                grouped_peaks = np.maximum.reduceat(valid_peaks, group_starts)
+                grouped_bins = valid_bins[group_starts]
+                peaks[grouped_bins] = np.maximum(
+                    peaks[grouped_bins],
+                    grouped_peaks,
+                )
             sample_offset += len(block)
 
     maximum = float(peaks.max())

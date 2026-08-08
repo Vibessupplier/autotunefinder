@@ -47,10 +47,10 @@
   audio after processing unless persistent storage is intentionally designed.
 - Keep waveform selection in the UI, but perform sample extraction and export
   through reusable product-level functions backed by `audio_engine.py`.
-- Evolve the Audio Chopper waveform into a reusable JavaScript/Web Audio
-  component with direct drag selection, mouse-wheel zoom, drag-to-pan, and a
-  synchronized playhead. Keep final trimming and export authoritative on the
-  Python/FFmpeg side.
+- The Audio Chopper uses a reusable JavaScript/Web Audio component for direct
+  selection, mouse-wheel zoom/navigation, synchronized playback, and looping
+  without Streamlit reruns. Keep final trimming and export authoritative on
+  the Python/FFmpeg side; direct drag-to-pan remains a future enhancement.
 - Build the future Mastering Analyzer as a focused Analyze tool. Keep LUFS,
   peak/true-peak, dynamic-range, stereo-width, phase-correlation, and mono
   compatibility measurements in reusable analysis modules rather than the page.
@@ -74,6 +74,7 @@
 - `audio_engine.py`: reusable FFmpeg runner and processing errors.
 - `audio_effects.py`: reusable product-level audio transformations.
 - `audio_chopper.py`: waveform extraction and selected-fragment export.
+- `waveform_component.py`: browser-side interactive waveform and playback.
 - `mastering_analysis.py`: loudness, stereo, and static spectral analysis.
 - `stem_separation.py`: product-level local and cloud vocal separation.
 - `cloud_stem_separation.py`: private Modal vocal separation client.
@@ -115,10 +116,11 @@
   Modal GPU processing service is being connected to the application.
 - Keep pitch and tempo processing reusable so future focused, SEO-friendly tool
   pages can share the same engine without duplicating logic.
-- Audio Chopper Beta provides a static high-resolution waveform, precise range
-  selection, zoom/pan controls, automatic fragment playback, and MP3 export.
-  Its future interactive browser waveform must reuse the existing trimming
-  engine rather than duplicate processing inside the page.
+- Audio Chopper Beta provides a high-resolution interactive waveform, direct
+  range selection, browser-side zoom/navigation, synchronized playhead, Loop
+  Selection, optional processed preview, and MP3 export. Browser interaction
+  must reuse the existing trimming engine rather than duplicate final export
+  processing inside the component.
 - The Mastering Analyzer now provides LUFS, dBFS/true peak, dynamics, stereo
   measurements, mono compatibility, A/B reference comparison, Volume Match,
   and static spectral balance. Keep it distinct from any future AI Mastering

@@ -87,11 +87,13 @@
 
 ## Future Ideas
 - [x] Audio Chopper Beta page
-- [x] Static waveform with zoom, pan, and precise start/end controls
-- [x] Automatic selected-fragment player and optional preview
+- [x] High-resolution waveform data and precise sample trimming
+- [x] Browser-side selected-fragment player and optional processed preview
 - [x] Export user-selected samples in MP3
-- [ ] JavaScript/Web Audio waveform component with direct drag selection
-- [ ] Mouse-wheel waveform zoom, drag-to-pan, and synchronized playhead
+- [x] JavaScript/Web Audio waveform component with direct drag selection
+- [x] Mouse-wheel zoom and horizontal navigation without Streamlit reruns
+- [x] Synchronized playhead and infinite Loop Selection mode
+- [ ] Direct drag-to-pan waveform navigation
 - [ ] Premium WAV and FLAC sample export
 - [ ] Multi-stem separation (vocals, drums, bass, and other)
 - [ ] Spectrogram
