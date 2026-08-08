@@ -11,7 +11,7 @@ from stem_separation import (
     create_vocal_split_preview,
     separate_vocals,
 )
-from ui import load_design, show_header
+from ui import load_design, show_header, show_tool_header
 
 
 @st.cache_data(show_spinner=False)
@@ -54,9 +54,11 @@ def is_vocal_split_enabled() -> bool:
 
 load_design()
 show_header()
-
-st.title("Vocal Remover & Acapella Extractor")
-st.write("Separate a track into an acapella and an instrumental.")
+show_tool_header(
+    "Separate / 03",
+    "Vocal Split",
+    "Pull the voice from the rhythm. Acapella and instrumental, separated.",
+)
 
 if not is_vocal_split_enabled():
     st.info("Coming soon — high-quality Vocal Split is being prepared.")

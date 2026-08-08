@@ -10,7 +10,7 @@ from audio_analysis import (
     get_bpm_options
 )
 
-from ui import load_design, show_header
+from ui import load_design, show_header, show_tool_header
 
 
 # -------------------------
@@ -19,8 +19,11 @@ from ui import load_design, show_header
 
 load_design()
 show_header()
-
-st.subheader("KEY & BPM FINDER")
+show_tool_header(
+    "Analyze / 01",
+    "Key & BPM Finder",
+    "Read the musical DNA of your track: key, tempo and Camelot position.",
+)
 
 
 # -------------------------

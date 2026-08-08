@@ -8,26 +8,29 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-pages = [
-    st.Page(
-        "pages/1_Key_BPM_Finder.py",
-        title="Key & BPM Finder",
-        icon="🎵",
-        default=True,
-    ),
-    st.Page(
-        "pages/2_Speed_Changer.py",
-        title="Speed Changer",
-        icon="⚡",
-        url_path="speed-changer",
-    ),
-    st.Page(
-        "pages/3_Vocal_Split.py",
-        title="Vocal Split",
-        icon="🎤",
-        url_path="vocal-split",
-    ),
-]
+pages = {
+    "ANALYZE": [
+        st.Page(
+            "pages/1_Key_BPM_Finder.py",
+            title="Key & BPM Finder",
+            default=True,
+        ),
+    ],
+    "TRANSFORM": [
+        st.Page(
+            "pages/2_Speed_Changer.py",
+            title="Speed Changer",
+            url_path="speed-changer",
+        ),
+    ],
+    "SEPARATE": [
+        st.Page(
+            "pages/3_Vocal_Split.py",
+            title="Vocal Split · Soon",
+            url_path="vocal-split",
+        ),
+    ],
+}
 
 navigation = st.navigation(pages, position="sidebar")
 navigation.run()

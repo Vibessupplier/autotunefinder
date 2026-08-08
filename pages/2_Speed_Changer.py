@@ -15,7 +15,7 @@ from audio_effects import (
     create_speed_preview,
 )
 from audio_engine import AudioProcessingError
-from ui import load_design, show_header
+from ui import load_design, show_header, show_tool_header
 
 
 @st.cache_data(show_spinner=False)
@@ -28,9 +28,11 @@ def detect_uploaded_bpm(audio_data: bytes, suffix: str) -> float:
 
 load_design()
 show_header()
-
-st.title("Speed Changer")
-st.write("Choose an exact target BPM and change your track's speed.")
+show_tool_header(
+    "Transform / 02",
+    "Speed Changer",
+    "Set an exact target BPM and reshape speed and pitch with precision.",
+)
 
 audio_file = st.file_uploader(
     "Upload your audio",
