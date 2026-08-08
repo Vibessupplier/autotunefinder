@@ -17,6 +17,8 @@ def load_design() -> None:
     """Load the shared Jungle Tech visual system."""
     design = """
         <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+
         :root {
             --jungle-black: #08110d;
             --deep-forest: #10271b;
@@ -27,10 +29,18 @@ def load_design() -> None:
             --mango: #ffb23f;
             --muted: rgba(216, 195, 154, 0.68);
             --line: rgba(216, 195, 154, 0.16);
+            --font-interface: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            --font-display: "Space Grotesk", "Inter", sans-serif;
+            --font-technical: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
         }
 
         html, body, [class*="css"] {
             color: var(--bone);
+            font-family: var(--font-interface);
+        }
+
+        button, input, select, textarea {
+            font-family: var(--font-interface) !important;
         }
 
         .stApp {
@@ -75,6 +85,7 @@ def load_design() -> None:
             font-weight: 850;
             letter-spacing: 0.12em;
             text-transform: uppercase;
+            font-family: var(--font-interface);
         }
 
         .vs-inner-index {
@@ -109,6 +120,7 @@ def load_design() -> None:
             font-weight: 800;
             letter-spacing: 0.22em;
             text-transform: uppercase;
+            font-family: var(--font-interface);
         }
 
         .vs-family::before {
@@ -126,6 +138,7 @@ def load_design() -> None:
             font-weight: 820;
             line-height: 0.98;
             letter-spacing: -0.045em;
+            font-family: var(--font-display);
         }
 
         .vs-tool-description {
@@ -140,6 +153,8 @@ def load_design() -> None:
         h1, h2, h3, h4 {
             color: var(--bone) !important;
             letter-spacing: -0.025em;
+            font-family: var(--font-display) !important;
+            font-weight: 650 !important;
         }
 
         h2, h3 {
@@ -148,6 +163,7 @@ def load_design() -> None:
 
         p, label, [data-testid="stCaptionContainer"] {
             color: var(--sand);
+            font-family: var(--font-interface);
         }
 
         [data-testid="stCaptionContainer"] {
@@ -176,6 +192,7 @@ def load_design() -> None:
             font-size: 0.66rem;
             font-weight: 800;
             letter-spacing: 0.2em;
+            font-family: var(--font-interface);
         }
 
         [data-testid="stSidebarNavSeparator"] {
@@ -188,6 +205,7 @@ def load_design() -> None:
             font-weight: 800;
             letter-spacing: 0.2em;
             margin-top: 0.65rem;
+            font-family: var(--font-interface);
         }
 
         [data-testid="stSidebar"] a {
@@ -195,6 +213,10 @@ def load_design() -> None:
             border-radius: 9px 4px 9px 4px;
             color: var(--sand);
             transition: background 140ms ease, border-color 140ms ease;
+            font-family: var(--font-interface);
+            font-size: 0.88rem;
+            font-weight: 550;
+            letter-spacing: -0.01em;
         }
 
         [data-testid="stSidebar"] a:hover {
@@ -250,6 +272,7 @@ def load_design() -> None:
         [data-testid="stNumberInput"] input {
             color: var(--bone) !important;
             font-weight: 720;
+            font-family: var(--font-technical) !important;
         }
 
         [data-testid="stNumberInput"] button {
@@ -344,6 +367,7 @@ def load_design() -> None:
             letter-spacing: 0.08em;
             text-transform: uppercase;
             transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+            font-family: var(--font-interface);
         }
 
         [data-testid="stButton"] button[kind="primary"],
@@ -395,12 +419,23 @@ def load_design() -> None:
             font-size: 0.68rem;
             font-weight: 800;
             letter-spacing: 0.15em;
+            font-family: var(--font-interface);
         }
 
         [data-testid="stMetricValue"] {
             color: var(--lime);
             font-weight: 780;
             text-shadow: 0 0 16px rgba(184, 255, 61, 0.14);
+            font-family: var(--font-technical);
+            letter-spacing: -0.035em;
+        }
+
+        [data-testid="stSlider"] [data-testid="stThumbValue"],
+        [data-testid="stSlider"] [data-testid="stTickBarMin"],
+        [data-testid="stSlider"] [data-testid="stTickBarMax"],
+        [data-testid="stTable"] td,
+        [data-testid="stDataFrame"] {
+            font-family: var(--font-technical) !important;
         }
 
         [data-testid="stAudio"] {
