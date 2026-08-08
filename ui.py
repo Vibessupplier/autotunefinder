@@ -1,12 +1,23 @@
 """Shared Jungle Tech presentation helpers for Streamlit pages."""
 
+import base64
+from pathlib import Path
+
 import streamlit as st
+
+
+def _jungle_background_data_uri() -> str:
+    """Embed the background so it works consistently on Streamlit Cloud."""
+    background_path = (
+        Path(__file__).parent / "static" / "jungle-tech-background.png"
+    )
+    encoded = base64.b64encode(background_path.read_bytes()).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
 
 
 def load_design() -> None:
     """Load the shared Jungle Tech visual system."""
-    st.markdown(
-        """
+    design = """
         <style>
         :root {
             --jungle-black: #08110d;
@@ -27,9 +38,9 @@ def load_design() -> None:
         .stApp {
             background-color: var(--jungle-black);
             background-image:
-                linear-gradient(rgba(8, 17, 13, 0.52), rgba(8, 17, 13, 0.72)),
-                radial-gradient(circle at 50% 32%, transparent 0 16rem, rgba(8, 17, 13, 0.24) 42rem),
-                url("/app/static/jungle-tech-background.png");
+                linear-gradient(rgba(8, 17, 13, 0.16), rgba(8, 17, 13, 0.42)),
+                radial-gradient(circle at 50% 32%, transparent 0 18rem, rgba(8, 17, 13, 0.12) 44rem),
+                url("__JUNGLE_BACKGROUND__");
             background-position: center top;
             background-repeat: no-repeat;
             background-size: cover;
@@ -312,6 +323,12 @@ def load_design() -> None:
             color: var(--bone);
         }
 
+        [data-baseweb="notification"] {
+            border-color: rgba(216, 195, 154, 0.18) !important;
+            background: rgba(16, 39, 27, 0.88) !important;
+            color: var(--bone) !important;
+        }
+
         [data-testid="stAlert"] svg {
             color: var(--lime);
         }
@@ -352,7 +369,9 @@ def load_design() -> None:
             }
         }
         </style>
-        """,
+        """
+    st.markdown(
+        design.replace("__JUNGLE_BACKGROUND__", _jungle_background_data_uri()),
         unsafe_allow_html=True,
     )
 
