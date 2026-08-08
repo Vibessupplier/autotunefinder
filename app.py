@@ -34,6 +34,11 @@ pages = {
             title="Speed Changer",
             url_path="speed-changer",
         ),
+        st.Page(
+            "pages/5_Audio_Chopper.py",
+            title="Audio Chopper · Beta",
+            url_path="audio-chopper",
+        ),
     ],
     "SEPARATE": [
         st.Page(

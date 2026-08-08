@@ -86,10 +86,13 @@
 ---
 
 ## Future Ideas
-- [ ] Pro Audio Chopper page
-- [ ] Interactive waveform with start and end selection
-- [ ] Preview the selected audio fragment
-- [ ] Export user-selected samples in MP3 and WAV
+- [x] Audio Chopper Beta page
+- [x] Static waveform with zoom, pan, and precise start/end controls
+- [x] Automatic selected-fragment player and optional preview
+- [x] Export user-selected samples in MP3
+- [ ] JavaScript/Web Audio waveform component with direct drag selection
+- [ ] Mouse-wheel waveform zoom, drag-to-pan, and synchronized playhead
+- [ ] Premium WAV and FLAC sample export
 - [ ] Multi-stem separation (vocals, drums, bass, and other)
 - [ ] Spectrogram
 - [ ] AI Mix Assistant
