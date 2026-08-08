@@ -22,6 +22,11 @@ pages = {
             title="Key & BPM Finder",
             url_path="key-bpm-finder",
         ),
+        st.Page(
+            "pages/4_Mastering_Analyzer.py",
+            title="Mastering Analyzer",
+            url_path="mastering-analyzer",
+        ),
     ],
     "TRANSFORM": [
         st.Page(

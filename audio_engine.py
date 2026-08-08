@@ -67,6 +67,42 @@ def probe_audio_duration(input_path: Path) -> float:
     return duration
 
 
+def analyze_audio_filter(input_path: Path, audio_filter: str) -> str:
+    """Run a read-only FFmpeg audio filter and return its diagnostic output."""
+    input_path = Path(input_path)
+    if not input_path.is_file():
+        raise AudioProcessingError(f"Input audio does not exist: {input_path}")
+    if not audio_filter or not audio_filter.strip():
+        raise AudioProcessingError("An audio analysis filter is required.")
+
+    command = [
+        _ffmpeg_executable(),
+        "-hide_banner",
+        "-nostats",
+        "-i",
+        str(input_path),
+        "-vn",
+        "-af",
+        audio_filter,
+        "-f",
+        "null",
+        "-",
+    ]
+
+    try:
+        result = subprocess.run(
+            command,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as error:
+        details = error.stderr.strip() or "Unknown FFmpeg analysis error"
+        raise AudioProcessingError(details) from error
+
+    return result.stderr
+
+
 def transform_audio(
     input_path: Path,
     output_path: Path,
