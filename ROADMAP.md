@@ -70,7 +70,7 @@
 - [x] Peak and true-peak level measurements in dBFS/dBTP
 - [x] Loudness range and RMS level indicators
 - [ ] Additional dynamic-range indicators
-- [ ] Stereo balance, width, phase correlation, and mono compatibility
+- [x] Static stereo balance, width, phase correlation, and mono compatibility
 - [x] Clear mastering-oriented result summaries and measurement explanations
 - [ ] Configurable mastering reference ranges
 - [ ] Spectral balance visualization
