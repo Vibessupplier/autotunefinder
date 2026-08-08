@@ -6,7 +6,9 @@ import streamlit as st
 from mastering_analysis import (
     MasteringAnalysisError,
     MasteringMetrics,
+    StereoMetrics,
     analyze_mastering,
+    analyze_stereo,
 )
 from ui import load_design, show_header, show_tool_header
 
@@ -15,12 +17,12 @@ from ui import load_design, show_header, show_tool_header
 def analyze_uploaded_master(
     audio_data: bytes,
     suffix: str,
-) -> MasteringMetrics:
+) -> tuple[MasteringMetrics, StereoMetrics]:
     """Cache analysis so Streamlit reruns do not process the same file again."""
     with tempfile.TemporaryDirectory() as temp_directory:
         input_path = Path(temp_directory) / f"master{suffix}"
         input_path.write_bytes(audio_data)
-        return analyze_mastering(input_path)
+        return analyze_mastering(input_path), analyze_stereo(input_path)
 
 
 def format_duration(seconds: float) -> str:
@@ -43,6 +45,32 @@ def true_peak_context(true_peak_dbfs: float) -> str:
     return (
         "The track has at least 1 dB of measured true-peak headroom. Loudness "
         "and headroom still need to be judged in context."
+    )
+
+
+def format_balance(balance_db: float) -> str:
+    if abs(balance_db) < 0.1:
+        return "Centered"
+    louder_side = "R" if balance_db > 0 else "L"
+    return f"{louder_side} +{abs(balance_db):.1f} dB"
+
+
+def stereo_context(stereo: StereoMetrics) -> str:
+    if stereo.channels == 1:
+        return "This is a mono source, so stereo width and phase are not present."
+    if stereo.correlation < 0:
+        return (
+            "Negative phase correlation was measured. Some elements may lose "
+            "level or cancel when the track is played in mono."
+        )
+    if stereo.correlation < 0.2:
+        return (
+            "Phase correlation is low. The master is very wide and should be "
+            "checked carefully in mono."
+        )
+    return (
+        "Phase correlation is positive overall. This reduces broad mono "
+        "cancellation risk, but short problem sections may still exist."
     )
 
 
@@ -72,7 +100,7 @@ if audio_file is not None:
     upload_signature = (audio_file.name, audio_file.size)
 
     if st.session_state.get("mastering_signature") != upload_signature:
-        st.session_state.pop("mastering_metrics", None)
+        st.session_state.pop("mastering_report", None)
         st.session_state["mastering_signature"] = upload_signature
 
     size_megabytes = audio_file.size / (1024 * 1024)
@@ -84,7 +112,7 @@ if audio_file is not None:
     if st.button("ANALYZE MASTER", type="primary"):
         with st.spinner("Measuring loudness and peak levels..."):
             try:
-                st.session_state["mastering_metrics"] = analyze_uploaded_master(
+                st.session_state["mastering_report"] = analyze_uploaded_master(
                     audio_data,
                     suffix,
                 )
@@ -92,8 +120,9 @@ if audio_file is not None:
                 st.error("The master could not be analyzed.")
                 st.code(str(error))
 
-    metrics = st.session_state.get("mastering_metrics")
-    if metrics is not None:
+    report = st.session_state.get("mastering_report")
+    if report is not None:
+        metrics, stereo = report
         st.success("Mastering analysis complete.")
 
         st.subheader("Loudness & dynamics")
@@ -152,6 +181,48 @@ if audio_file is not None:
 
         st.info(true_peak_context(metrics.true_peak_dbfs))
 
+        st.subheader("Stereo field")
+        balance_column, width_column, phase_column = st.columns(3)
+        with balance_column:
+            st.metric(
+                "L / R BALANCE",
+                format_balance(stereo.balance_db),
+                help=(
+                    "The RMS level difference between the right and left "
+                    "channels. A small offset can be musically intentional."
+                ),
+            )
+        with width_column:
+            st.metric(
+                "STEREO WIDTH",
+                (
+                    "Mono"
+                    if stereo.channels == 1
+                    else f"{stereo.width_percent:.0f}% side"
+                ),
+                help=(
+                    "The side signal as a percentage of combined mid and side "
+                    "RMS energy. 0% is fully centered; higher values indicate "
+                    "more side information."
+                ),
+            )
+        with phase_column:
+            st.metric(
+                "PHASE CORRELATION",
+                (
+                    "Mono"
+                    if stereo.channels == 1
+                    else f"{stereo.correlation:+.2f}"
+                ),
+                help=(
+                    "+1 means the channels move together, 0 means they are "
+                    "largely unrelated, and negative values indicate possible "
+                    "mono cancellation."
+                ),
+            )
+
+        st.info(stereo_context(stereo))
+
         with st.expander("HOW TO READ THESE RESULTS"):
             st.markdown(
                 """
@@ -161,6 +232,8 @@ if audio_file is not None:
                   inter-sample behavior that a sample meter can miss.
                 - **LRA depends on the music.** Dense club music and an acoustic
                   arrangement naturally produce very different ranges.
+                - **Stereo width needs a mono check.** A wide master can sound
+                  excellent, but negative phase correlation can cause cancellation.
                 - Compare measurements with suitable references, then make the
                   final decision with your ears in a calibrated listening setup.
                 """

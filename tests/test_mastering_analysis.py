@@ -5,10 +5,14 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+import numpy as np
+import soundfile as sf
+
 from mastering_analysis import (
     MASTERING_FILTER,
     MasteringAnalysisError,
     analyze_mastering,
+    analyze_stereo,
     parse_mastering_output,
 )
 
@@ -91,6 +95,47 @@ class MasteringAnalysisIntegrationTest(unittest.TestCase):
             self.assertLess(metrics.integrated_lufs, -35.0)
             self.assertLessEqual(metrics.true_peak_dbfs, 0.0)
             self.assertLessEqual(metrics.sample_peak_dbfs, 0.0)
+
+    def test_measures_balanced_correlated_stereo(self):
+        with tempfile.TemporaryDirectory() as temp_directory:
+            source = Path(temp_directory) / "stereo.wav"
+            sample_rate = 48000
+            time = np.arange(sample_rate, dtype=np.float64) / sample_rate
+            tone = 0.25 * np.sin(2 * np.pi * 440 * time)
+            sf.write(source, np.column_stack((tone, tone)), sample_rate)
+
+            metrics = analyze_stereo(source)
+
+            self.assertEqual(metrics.channels, 2)
+            self.assertAlmostEqual(metrics.balance_db, 0.0, places=2)
+            self.assertLess(metrics.width_percent, 0.1)
+            self.assertGreater(metrics.correlation, 0.999)
+
+    def test_detects_right_channel_attenuation(self):
+        with tempfile.TemporaryDirectory() as temp_directory:
+            source = Path(temp_directory) / "unbalanced.wav"
+            sample_rate = 48000
+            time = np.arange(sample_rate, dtype=np.float64) / sample_rate
+            left = 0.25 * np.sin(2 * np.pi * 440 * time)
+            right = left * 0.5
+            sf.write(source, np.column_stack((left, right)), sample_rate)
+
+            metrics = analyze_stereo(source)
+
+            self.assertAlmostEqual(metrics.balance_db, -6.02, delta=0.05)
+
+    def test_detects_out_of_phase_stereo(self):
+        with tempfile.TemporaryDirectory() as temp_directory:
+            source = Path(temp_directory) / "phase.wav"
+            sample_rate = 48000
+            time = np.arange(sample_rate, dtype=np.float64) / sample_rate
+            left = 0.25 * np.sin(2 * np.pi * 440 * time)
+            sf.write(source, np.column_stack((left, -left)), sample_rate)
+
+            metrics = analyze_stereo(source)
+
+            self.assertGreater(metrics.width_percent, 99.9)
+            self.assertLess(metrics.correlation, -0.999)
 
 
 if __name__ == "__main__":

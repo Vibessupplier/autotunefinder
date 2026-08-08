@@ -4,11 +4,15 @@ from dataclasses import dataclass
 import math
 from pathlib import Path
 import re
+import tempfile
+
+import soundfile as sf
 
 from audio_engine import (
     AudioProcessingError,
     analyze_audio_filter,
     probe_audio_duration,
+    transform_audio,
 )
 
 
@@ -28,6 +32,14 @@ class MasteringMetrics:
     sample_peak_dbfs: float
     rms_level_dbfs: float
     duration_seconds: float
+
+
+@dataclass(frozen=True)
+class StereoMetrics:
+    channels: int
+    balance_db: float
+    width_percent: float
+    correlation: float
 
 
 def _last_measurement(output: str, label: str) -> float:
@@ -90,4 +102,112 @@ def analyze_mastering(input_path: Path) -> MasteringMetrics:
         output = analyze_audio_filter(input_path, MASTERING_FILTER)
         return parse_mastering_output(output, duration)
     except AudioProcessingError as error:
+        raise MasteringAnalysisError(str(error)) from error
+
+
+def _db_ratio(numerator: float, denominator: float) -> float:
+    floor = 1e-12
+    ratio = max(numerator, floor) / max(denominator, floor)
+    return max(-60.0, min(60.0, 20.0 * math.log10(ratio)))
+
+
+def _analyze_stereo_wav(wav_path: Path) -> StereoMetrics:
+    """Measure stereo energy by blocks without loading the track into memory."""
+    with sf.SoundFile(wav_path) as audio_file:
+        channels = audio_file.channels
+        if channels == 1:
+            return StereoMetrics(
+                channels=1,
+                balance_db=0.0,
+                width_percent=0.0,
+                correlation=1.0,
+            )
+        if channels != 2:
+            raise MasteringAnalysisError(
+                "Stereo analysis currently supports mono or stereo audio."
+            )
+
+        sample_count = 0
+        sum_left = 0.0
+        sum_right = 0.0
+        sum_left_squared = 0.0
+        sum_right_squared = 0.0
+        sum_cross = 0.0
+
+        for block in audio_file.blocks(
+            blocksize=65536,
+            dtype="float32",
+            always_2d=True,
+        ):
+            left = block[:, 0].astype("float64", copy=False)
+            right = block[:, 1].astype("float64", copy=False)
+            sample_count += len(block)
+            sum_left += float(left.sum())
+            sum_right += float(right.sum())
+            sum_left_squared += float(left @ left)
+            sum_right_squared += float(right @ right)
+            sum_cross += float(left @ right)
+
+    if sample_count == 0:
+        raise MasteringAnalysisError("The audio file contains no samples.")
+
+    mean_left = sum_left / sample_count
+    mean_right = sum_right / sample_count
+    left_variance = max(
+        sum_left_squared / sample_count - mean_left**2,
+        0.0,
+    )
+    right_variance = max(
+        sum_right_squared / sample_count - mean_right**2,
+        0.0,
+    )
+    covariance = sum_cross / sample_count - mean_left * mean_right
+
+    left_rms = math.sqrt(sum_left_squared / sample_count)
+    right_rms = math.sqrt(sum_right_squared / sample_count)
+    balance_db = _db_ratio(right_rms, left_rms)
+
+    mid_energy = max(
+        (sum_left_squared + 2.0 * sum_cross + sum_right_squared)
+        / (4.0 * sample_count),
+        0.0,
+    )
+    side_energy = max(
+        (sum_left_squared - 2.0 * sum_cross + sum_right_squared)
+        / (4.0 * sample_count),
+        0.0,
+    )
+    mid_rms = math.sqrt(mid_energy)
+    side_rms = math.sqrt(side_energy)
+    width_denominator = mid_rms + side_rms
+    width_percent = (
+        0.0
+        if width_denominator <= 1e-12
+        else 100.0 * side_rms / width_denominator
+    )
+
+    correlation_denominator = math.sqrt(left_variance * right_variance)
+    correlation = (
+        1.0
+        if correlation_denominator <= 1e-12
+        else covariance / correlation_denominator
+    )
+    correlation = max(-1.0, min(1.0, correlation))
+
+    return StereoMetrics(
+        channels=2,
+        balance_db=balance_db,
+        width_percent=width_percent,
+        correlation=correlation,
+    )
+
+
+def analyze_stereo(input_path: Path) -> StereoMetrics:
+    """Decode a source safely and return static stereo-field measurements."""
+    try:
+        with tempfile.TemporaryDirectory() as temp_directory:
+            decoded_path = Path(temp_directory) / "stereo-analysis.wav"
+            transform_audio(input_path, decoded_path)
+            return _analyze_stereo_wav(decoded_path)
+    except (AudioProcessingError, sf.LibsndfileError) as error:
         raise MasteringAnalysisError(str(error)) from error
