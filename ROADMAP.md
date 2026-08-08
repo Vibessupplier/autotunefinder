@@ -38,6 +38,7 @@
 - [x] Process only the selected preview segment
 - [ ] Compare clean and natural acapella separation modes
 - [x] Run Vocal Split processing on Modal GPU
+- [ ] Re-enable the public preview after access and cost controls are ready
 - [ ] Add background processing and temporary result delivery
 
 ---

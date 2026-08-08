@@ -44,11 +44,28 @@ def get_modal_settings():
     return settings
 
 
+def is_vocal_split_enabled() -> bool:
+    """Keep processing disabled unless it is explicitly enabled."""
+    try:
+        return bool(st.secrets.get("vocal_split_enabled", False))
+    except FileNotFoundError:
+        return False
+
+
 load_design()
 show_header()
 
 st.title("Vocal Remover & Acapella Extractor")
 st.write("Separate a track into an acapella and an instrumental.")
+
+if not is_vocal_split_enabled():
+    st.info("Coming soon — high-quality Vocal Split is being prepared.")
+    st.caption(
+        "Soon you will be able to create an acapella and instrumental from "
+        "your track."
+    )
+    st.stop()
+
 modal_settings = get_modal_settings()
 if modal_settings is None:
     st.info(
