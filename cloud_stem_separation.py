@@ -30,7 +30,7 @@ def _validate_endpoint(endpoint: str) -> str:
     if (
         parsed.scheme != "https"
         or not parsed.hostname
-        or not parsed.hostname.endswith(".modal.direct")
+        or not parsed.hostname.endswith((".modal.direct", ".modal.run"))
     ):
         raise CloudStemSeparationError("Invalid Modal endpoint configuration.")
     return endpoint.rstrip("/")
@@ -85,6 +85,9 @@ def separate_vocals_in_cloud(
                 details or f"Modal returned HTTP {error.code}."
             ) from error
         except URLError as error:
+            if attempt < cold_start_retries:
+                time.sleep(2)
+                continue
             raise CloudStemSeparationError(
                 "The Vocal Split service could not be reached."
             ) from error

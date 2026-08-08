@@ -1,7 +1,7 @@
 import io
 import unittest
 from unittest.mock import MagicMock, patch
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 import zipfile
 
 from cloud_stem_separation import (
@@ -61,6 +61,27 @@ class CloudStemSeparationTest(unittest.TestCase):
         self.assertEqual(urlopen_mock.call_count, 2)
         sleep_mock.assert_called_once_with(2)
 
+    @patch("cloud_stem_separation.time.sleep")
+    @patch("cloud_stem_separation.urlopen")
+    def test_retries_connection_closed_during_cold_start(
+        self, urlopen_mock, sleep_mock
+    ):
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = stem_archive()
+        urlopen_mock.side_effect = [URLError(BrokenPipeError()), response]
+
+        result = separate_vocals_in_cloud(
+            b"audio",
+            ".wav",
+            ENDPOINT,
+            "token-id",
+            "token-secret",
+        )
+
+        self.assertEqual(result.vocals, b"vocals")
+        self.assertEqual(urlopen_mock.call_count, 2)
+        sleep_mock.assert_called_once_with(2)
+
     def test_rejects_untrusted_endpoint(self):
         with self.assertRaisesRegex(CloudStemSeparationError, "Invalid Modal"):
             separate_vocals_in_cloud(
@@ -70,6 +91,22 @@ class CloudStemSeparationTest(unittest.TestCase):
                 "token-id",
                 "token-secret",
             )
+
+    @patch("cloud_stem_separation.urlopen")
+    def test_accepts_private_modal_web_function_endpoint(self, urlopen_mock):
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = stem_archive()
+        urlopen_mock.return_value = response
+
+        result = separate_vocals_in_cloud(
+            b"audio",
+            ".wav",
+            "https://vocal-split.modal.run",
+            "token-id",
+            "token-secret",
+        )
+
+        self.assertEqual(result.vocals, b"vocals")
 
 
 if __name__ == "__main__":
