@@ -40,7 +40,7 @@ if audio_file is not None:
 
     st.audio(audio_file)
 
-    if st.button("ANALYZE AUDIO"):
+    if st.button("ANALYZE AUDIO", type="primary"):
 
         with st.spinner("Analyzing audio..."):
 

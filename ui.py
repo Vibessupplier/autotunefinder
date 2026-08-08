@@ -229,9 +229,25 @@ def load_design() -> None:
         [data-baseweb="input"] > div,
         [data-baseweb="select"] > div,
         [data-testid="stNumberInputContainer"] > div {
-            border-color: var(--line) !important;
-            background: rgba(16, 39, 27, 0.56) !important;
-            border-radius: 7px !important;
+            border: 1px solid var(--line) !important;
+            background: rgba(16, 39, 27, 0.82) !important;
+            border-radius: 11px 5px 11px 5px !important;
+            box-shadow: inset 0 1px 0 rgba(241, 233, 213, 0.03);
+        }
+
+        [data-baseweb="input"] > div:focus-within,
+        [data-testid="stNumberInputContainer"] > div:focus-within {
+            border-color: rgba(184, 255, 61, 0.72) !important;
+            box-shadow: 0 0 0 2px rgba(184, 255, 61, 0.10);
+        }
+
+        [data-testid="stNumberInput"] input {
+            color: var(--bone) !important;
+            font-weight: 720;
+        }
+
+        [data-testid="stNumberInput"] button {
+            color: var(--lime) !important;
         }
 
         [data-testid="stWidgetLabel"] p {
@@ -241,44 +257,117 @@ def load_design() -> None:
             letter-spacing: 0.045em;
         }
 
+        [data-testid="stTooltipIcon"] {
+            color: var(--lime) !important;
+            opacity: 1 !important;
+            filter: drop-shadow(0 0 5px rgba(184, 255, 61, 0.28));
+        }
+
+        [data-testid="stTooltipIcon"] svg {
+            width: 1.08rem !important;
+            height: 1.08rem !important;
+            color: var(--lime) !important;
+            fill: transparent !important;
+            stroke: currentColor !important;
+            stroke-width: 2.2px;
+        }
+
+        [data-testid="stRadio"] [role="radiogroup"] {
+            gap: 0.55rem;
+        }
+
+        [data-testid="stRadio"] label {
+            min-height: 2.65rem;
+            margin: 0;
+            padding: 0.58rem 0.78rem;
+            border: 1px solid var(--line);
+            border-radius: 9px 4px 9px 4px;
+            background: rgba(16, 39, 27, 0.74);
+            transition: border-color 140ms ease, background 140ms ease;
+        }
+
+        [data-testid="stRadio"] label:hover {
+            border-color: rgba(184, 255, 61, 0.45);
+            background: rgba(31, 107, 69, 0.28);
+        }
+
+        [data-testid="stRadio"] label:has(input:checked) {
+            border-color: var(--lime);
+            background: rgba(31, 107, 69, 0.40);
+            box-shadow: inset 3px 0 0 var(--lime);
+        }
+
         [data-baseweb="radio"] > div {
             background-color: var(--lime) !important;
         }
 
+        [data-testid="stSlider"] {
+            margin: 0.25rem 0 0.85rem;
+            padding: 0.75rem 0.95rem 0.95rem;
+            border: 1px solid var(--line);
+            border-radius: 12px 5px 12px 5px;
+            background:
+                linear-gradient(90deg, rgba(31, 107, 69, 0.20), transparent 60%),
+                rgba(16, 39, 27, 0.68);
+            backdrop-filter: blur(14px);
+        }
+
+        [data-testid="stSlider"] [data-baseweb="slider"] > div {
+            height: 4px;
+            border-radius: 0;
+        }
+
         [data-testid="stSlider"] [role="slider"] {
-            border-color: var(--lime) !important;
+            width: 16px !important;
+            height: 16px !important;
+            border: 3px solid var(--jungle-black) !important;
+            border-radius: 4px !important;
             background: var(--lime) !important;
             box-shadow: 0 0 12px rgba(184, 255, 61, 0.28);
+            transform: rotate(45deg);
         }
 
         /* Actions */
-        div.stButton > button,
-        div.stDownloadButton > button {
+        [data-testid="stButton"] button,
+        [data-testid="stDownloadButton"] button {
             min-height: 3.25rem;
-            width: 100%;
             border: 1px solid var(--lime);
-            border-radius: 7px;
-            background: var(--lime);
-            color: var(--jungle-black);
+            border-radius: 10px 4px 10px 4px;
             font-size: 0.82rem;
             font-weight: 850;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            box-shadow: 0 6px 22px rgba(184, 255, 61, 0.08);
             transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
         }
 
-        div.stButton > button:hover,
-        div.stDownloadButton > button:hover {
-            border-color: var(--bone);
+        [data-testid="stButton"] button[kind="primary"],
+        [data-testid="stDownloadButton"] button {
             background: var(--lime);
             color: var(--jungle-black);
+            box-shadow: 0 6px 22px rgba(184, 255, 61, 0.10);
+        }
+
+        [data-testid="stButton"] button[kind="secondary"] {
+            background: rgba(16, 39, 27, 0.84);
+            color: var(--lime);
+            box-shadow: inset 0 1px 0 rgba(241, 233, 213, 0.04);
+        }
+
+        [data-testid="stButton"] button p,
+        [data-testid="stDownloadButton"] button p {
+            color: inherit !important;
+            font-weight: inherit !important;
+        }
+
+        [data-testid="stButton"] button:hover,
+        [data-testid="stDownloadButton"] button:hover {
+            border-color: var(--bone);
             transform: translateY(-1px);
             box-shadow: 0 8px 26px rgba(184, 255, 61, 0.18);
         }
 
-        div.stButton > button:focus:not(:active),
-        div.stDownloadButton > button:focus:not(:active) {
+        [data-testid="stButton"] button:focus:not(:active),
+        [data-testid="stDownloadButton"] button:focus:not(:active) {
             border-color: var(--bone);
             box-shadow: 0 0 0 3px rgba(184, 255, 61, 0.28);
         }

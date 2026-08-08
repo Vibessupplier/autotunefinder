@@ -131,7 +131,7 @@ if audio_file is not None:
         st.session_state.pop("vocal_split_preview", None)
         st.session_state["vocal_preview_settings"] = preview_signature
 
-    if st.button("CREATE 20-SECOND VOCAL PREVIEW"):
+    if st.button("CREATE 20-SECOND VOCAL PREVIEW", type="secondary"):
         with st.spinner("Separating this 20-second preview..."):
             try:
                 with tempfile.TemporaryDirectory() as temp_directory:
@@ -197,7 +197,7 @@ if audio_file is not None:
         "Full-track processing currently runs only on this Mac and may take "
         "10–20 minutes."
     )
-    if st.button("SEPARATE FULL TRACK"):
+    if st.button("SEPARATE FULL TRACK", type="primary"):
         with st.spinner(
             "Separating vocals... Keep this page open. This may take several minutes."
         ):

@@ -135,7 +135,7 @@ if audio_file is not None:
         st.session_state.pop("speed_result", None)
         st.session_state["speed_settings"] = settings_signature
 
-    if st.button("CREATE 20-SECOND PREVIEW"):
+    if st.button("CREATE 20-SECOND PREVIEW", type="secondary"):
         with st.spinner("Creating your processed preview..."):
             try:
                 with tempfile.TemporaryDirectory() as temp_directory:
@@ -159,7 +159,7 @@ if audio_file is not None:
         st.write("**Processed preview (up to 20 seconds)**")
         st.audio(preview, format="audio/mpeg")
 
-    if st.button("CHANGE SPEED"):
+    if st.button("CHANGE SPEED", type="primary"):
         with st.spinner("Changing your track's speed..."):
             try:
                 with tempfile.TemporaryDirectory() as temp_directory:
