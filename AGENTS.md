@@ -12,11 +12,19 @@
 
 ## Working style
 
-- The product owner is new to programming. Explain important decisions in plain
-  language without hiding relevant technical tradeoffs.
+- Treat the user as the product owner and the agent as the technical lead. Discuss
+  product and architecture decisions instead of imposing them.
+- The product owner is an experienced music producer but is new to programming.
+  Never assume knowledge of Python, terminals, virtual environments,
+  dependencies, classes, or software architecture.
+- Explain important decisions in plain language and connect technical concepts
+  to a concrete product benefit. Avoid detached programming lessons.
+- Give honest technical and product feedback. Do not agree with an idea when it
+  would damage maintainability, UX, security, SEO, or future scalability.
 - Work in small, verifiable increments: objective, small change, test, commit,
   push.
 - Finish and verify one feature before starting another.
+- Prefer sessions that end with a visible, working product improvement.
 - Prefer a durable design over a quick workaround.
 - Challenge product or technical ideas that would create security,
   maintainability, UX, or scaling problems.
@@ -37,13 +45,18 @@
 - Validate user-controlled values before passing them to the processing layer.
 - Use temporary storage for uploaded and generated audio. Do not retain user
   audio after processing unless persistent storage is intentionally designed.
+- Keep waveform selection in the UI, but perform sample extraction and export
+  through reusable product-level functions backed by `audio_engine.py`.
 
 ## Current application structure
 
-- `app.py`: current key and BPM analysis page.
+- `app.py`: application entry point and multipage navigation.
 - `audio_analysis.py`: key, BPM, and Camelot analysis logic.
 - `audio_engine.py`: reusable FFmpeg runner and processing errors.
 - `audio_effects.py`: reusable product-level audio transformations.
+- `stem_separation.py`: product-level local and cloud vocal separation.
+- `cloud_stem_separation.py`: private Modal vocal separation client.
+- `modal_vocal_split_server.py`: private zero-retention Modal GPU server.
 - `ui.py`: shared Streamlit presentation helpers.
 - `pages/`: independent Streamlit tool pages.
 - `tests/`: automated tests.
@@ -72,8 +85,16 @@
 
 ## Near-term direction
 
-- Complete and validate Nightcore before starting another generator.
-- Keep pitch-only and tempo-only processing separate from Nightcore so the same
-  primitives can support future Pitch Changer and Tempo Changer pages.
-- Defer accounts, billing, persistent user files, background jobs, and stem
-  splitting until their product and infrastructure requirements are designed.
+- Nightcore-style and Slowed-style transformations are now modes of the shared
+  Speed Changer rather than separate duplicated processing engines.
+- The Speed Changer supports exact target BPM, pitch following speed, preserved
+  original pitch, and independent pitch adjustment.
+- Vocal Split supports a selectable local 20-second preview, and its private
+  Modal GPU processing service is being connected to the application.
+- Keep pitch and tempo processing reusable so future focused, SEO-friendly tool
+  pages can share the same engine without duplicating logic.
+- Plan Audio Chopper as a focused Pro tool with a waveform, user-selected start
+  and end points, fragment preview, and sample export. Do not duplicate its
+  trimming engine inside the page.
+- Defer accounts, subscriptions, billing, and persistent user files until their
+  product and infrastructure requirements are designed.

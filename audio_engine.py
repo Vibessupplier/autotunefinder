@@ -21,11 +21,58 @@ def _ffmpeg_executable() -> str:
     return executable
 
 
+def _ffprobe_executable() -> str:
+    executable = shutil.which("ffprobe")
+
+    if executable is None:
+        raise AudioProcessingError(
+            "FFprobe is not installed or is not available on PATH."
+        )
+
+    return executable
+
+
+def probe_audio_duration(input_path: Path) -> float:
+    """Return an audio file's duration in seconds using FFprobe."""
+    input_path = Path(input_path)
+    if not input_path.is_file():
+        raise AudioProcessingError(f"Input audio does not exist: {input_path}")
+
+    command = [
+        _ffprobe_executable(),
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+        str(input_path),
+    ]
+
+    try:
+        result = subprocess.run(
+            command,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        duration = float(result.stdout.strip())
+    except (subprocess.CalledProcessError, ValueError) as error:
+        details = getattr(error, "stderr", "") or "Invalid audio duration."
+        raise AudioProcessingError(details.strip()) from error
+
+    if duration <= 0:
+        raise AudioProcessingError("Audio duration must be greater than zero.")
+
+    return duration
+
+
 def transform_audio(
     input_path: Path,
     output_path: Path,
     filters: Optional[Iterable[str]] = None,
     output_duration_seconds: Optional[float] = None,
+    input_start_seconds: Optional[float] = None,
 ) -> Path:
     """Transform an audio file with FFmpeg and return the output path."""
     input_path = Path(input_path)
@@ -42,10 +89,14 @@ def transform_audio(
         "-loglevel",
         "error",
         "-y",
-        "-i",
-        str(input_path),
-        "-vn",
     ]
+
+    if input_start_seconds is not None:
+        if input_start_seconds < 0:
+            raise AudioProcessingError("Input start time cannot be negative.")
+        command.extend(["-ss", str(input_start_seconds)])
+
+    command.extend(["-i", str(input_path), "-vn"])
 
     audio_filters = list(filters or [])
     if audio_filters:
